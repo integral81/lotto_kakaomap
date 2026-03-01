@@ -3405,36 +3405,39 @@
             function processLoadedData(data) {
                 allData = data;
 
-                // 1. Detect Schema & Calculate win count per shop
-                const isSummarized = data.length > 0 && (data[0].w !== undefined || data[0].totalWins !== undefined);
+                // 1. Calculate accurate total wins for every shop (Unified Schema handling)
+                const shopStats = {};
 
-                if (isSummarized) {
-                    console.log("[Data] Schema detected: SHOP SUMMARY (Tier 1/Standardized)");
-                    data.forEach(item => {
-                        // Use existing 'w' or 'totalWins' if provided by Scheme B
-                        item.totalWins = item.w || item.totalWins || 1;
-                        if (item.r === undefined) item.r = 1212; // Default to newest if round missing
-                        if (item.m === undefined) item.m = "정보없음"; // Default method
-                    });
-                } else {
-                    console.log("[Data] Schema detected: INDIVIDUAL WINNINGS (Legacy/Detailed)");
-                    const shopWins = {};
-                    data.forEach(item => {
-                        const key = (item.n || '').trim() + '|' + (item.a || '').trim();
-                        shopWins[key] = (shopWins[key] || 0) + 1;
-                    });
-                    // Attach calculated totalWins to each winning record
-                    data.forEach(item => {
-                        const key = (item.n || '').trim() + '|' + (item.a || '').trim();
-                        item.totalWins = shopWins[key];
-                    });
-                }
-
-                // Final Pass: Ensure every item has totalWins for filtering
+                // First pass: Build stats (max of recorded 'w' field OR actual record count)
                 data.forEach(item => {
-                    if (item.totalWins === undefined) {
-                        item.totalWins = item.w || item.totalWins || 1;
+                    const key = (item.n || '').trim() + '|' + (item.a || '').trim();
+                    if (!shopStats[key]) {
+                        shopStats[key] = { count: 0, recordedMax: 0 };
                     }
+
+                    // Summarized data often has 'w' or 'totalWins'
+                    const wValue = parseInt(item.w || item.totalWins || 0);
+                    if (wValue > 0) {
+                        shopStats[key].recordedMax = Math.max(shopStats[key].recordedMax, wValue);
+                    }
+                    // Count individual winning records
+                    if (item.r) {
+                        shopStats[key].count++;
+                    } else if (wValue > 0 && (!item.rounds || item.rounds.length === 0)) {
+                        // Some summaries have w but no r/rounds - they count as 1 summary record
+                        shopStats[key].count++;
+                    }
+                });
+
+                // Second pass: Assign unified totalWins to every record
+                data.forEach(item => {
+                    const key = (item.n || '').trim() + '|' + (item.a || '').trim();
+                    const stats = shopStats[key];
+                    item.totalWins = Math.max(stats.count, stats.recordedMax);
+
+                    // Defaults for filtering
+                    if (item.r === undefined) item.r = 1213;
+                    if (item.m === undefined) item.m = "정보없음";
                 });
 
                 // 2. Statistics & UI Updates
