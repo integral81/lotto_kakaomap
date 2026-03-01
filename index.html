@@ -3838,9 +3838,11 @@
                     // 폐업점 제외 체크 시 폐업 데이터 숨김
                     if (excludeClosed && d.closed) return false;
 
-                    const rMatch = (d.r === undefined) || (d.r >= minR && d.r <= maxR);
-                    let mMatch = false;
+                    // 10회 이상 당첨된 '명당'은 회차 필터와 관계없이 항상 통과 (사용자 요청)
+                    const isHighWinShop = (d.totalWins >= 10);
+                    const rMatch = (d.r === undefined) || (d.r >= minR && d.r <= maxR) || isHighWinShop;
 
+                    let mMatch = false;
                     // 만약 당첨 방식 정보가 없으면 필터 체크 여부와 상관없이 보여줌 (요약 데이터 대응)
                     if (d.m === undefined || d.m === "정보없음") {
                         mMatch = true;
@@ -3853,18 +3855,10 @@
                     return rMatch && mMatch;
                 });
 
-                // ===== 2단계: 매장별 전체 당첨 횟수 계산 (회차 범위 필터와 상관없이 상점 인식) =====
-                const shopWinsInRange = {};
-                allData.forEach(item => {
-                    // roundFiltered 대신 allData를 사용하여 해당 상점의 역대 모든 당첨 횟수를 집계합니다.
-                    const key = (item.n || '').trim() + '|' + (item.a || '').trim();
-                    shopWinsInRange[key] = (shopWinsInRange[key] || 0) + 1;
-                });
-
-                // 필터링된 데이터(회차 범위 내)에 위에서 계산한 전체 당첨 횟수를 부여합니다.
+                // ===== 2단계: 데이터 정규화 (전역 집계 데이터 활용) =====
+                // winsInRange는 이전 로직과의 호환성을 위해 global totalWins를 그대로 사용합니다.
                 roundFiltered.forEach(item => {
-                    const key = (item.n || '').trim() + '|' + (item.a || '').trim();
-                    item.winsInRange = shopWinsInRange[key];
+                    item.winsInRange = item.totalWins || 0;
                 });
 
 
