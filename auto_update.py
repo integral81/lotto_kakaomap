@@ -24,348 +24,188 @@ BASE_HEADERS = {
     "Referer": "https://www.dhlottery.co.kr/",
 }
 
-
 def normalize_address(addr):
-    if not isinstance(addr, str):
-        return addr
+    if not isinstance(addr, str): return addr
     addr = addr.strip()
     addr = re.sub(r"(\d+)\uc5b5?", r"\1", addr)
-    addr = re.sub(r"\s+(\d+)\ud638?$", "", addr)
-    addr = addr.rstrip("., ")
-    return addr
-
+    return addr.rstrip("., ")
 
 def geocode(address, api_key, cache):
-    if address in cache:
-        return cache[address]
-    if not api_key:
-        return None, None
+    if address in cache: return cache[address]
+    if not api_key: return None, None
     url = "https://dapi.kakao.com/v2/local/search/address.json"
     headers = {"Authorization": "KakaoAK " + api_key}
-    params = {"query": address}
     try:
-        r = requests.get(url, headers=headers, params=params, timeout=10)
+        r = requests.get(url, headers=headers, params={"query": address}, timeout=10)
         data = r.json()
         if data.get("documents"):
             pos = data["documents"][0]
             lat, lng = float(pos["y"]), float(pos["x"])
             cache[address] = (lat, lng)
             return lat, lng
-    except Exception as e:
-        print("Geocoding error:", e)
+    except: pass
     return None, None
 
 def human_interaction(page):
-    """Simulate basic human-like behavior like mouse movement and scrolling"""
     try:
-        # Move mouse to random spots
         for _ in range(random.randint(2, 4)):
-            x, y = random.randint(100, 700), random.randint(100, 500)
-            page.mouse.move(x, y, steps=10)
-            time.sleep(random.uniform(0.2, 0.5))
-        
-        # Random scroll
-        page.mouse.wheel(0, random.randint(200, 500))
-        time.sleep(random.uniform(0.5, 1.0))
-        page.mouse.wheel(0, -random.randint(100, 200))
+            page.mouse.move(random.randint(100, 700), random.randint(100, 500), steps=10)
+            time.sleep(random.uniform(0.1, 0.3))
+        page.mouse.wheel(0, random.randint(100, 300))
+        time.sleep(0.5)
+        page.mouse.wheel(0, -100)
     except: pass
 
-def scrape_with_playwright(draw_no):
-    """Use advanced human-like interaction to bypass dhlottery bot detection"""
-    print(f"[Playwright] Advanced human-like scraping for round {draw_no}...")
-    records = []
-    winning_numbers = None
+def scrape_super_human(draw_no):
+    """Mimic a human: visit main, click menus, type round number manually"""
+    print(f"[Playwright] Super Human Mode: Manually searching for round {draw_no}...")
+    records, winning_numbers = [], None
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-blink-features=AutomationControlled",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--window-size=1280,800"
-            ],
-        )
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            locale="ko-KR",
-            viewport={"width": 1280, "height": 800},
-            device_scale_factor=1,
-            has_touch=False,
-            is_mobile=False
-        )
-        
-        # More advanced fingerprint evasion
+        browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-blink-features=AutomationControlled"])
+        context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36", locale="ko-KR")
         page = context.new_page()
-        page.add_init_script(
-            """
-            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-            window.chrome = { runtime: {} };
-            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
-            Object.defineProperty(navigator, 'languages', {get: () => ['ko-KR', 'ko', 'en-US', 'en']});
-            """
-        )
+        page.add_init_script("Object.defineProperty(navigator,'webdriver',{get:()=>undefined});")
 
         try:
-            # Step 1: Visit main page
-            print("[Playwright] Step 1: Warming up session on main page...")
+            # 1. Main Page
+            print("[SuperHuman] Navigating to main page...")
             page.goto("https://www.dhlottery.co.kr/main", timeout=60000, wait_until="networkidle")
-            time.sleep(random.uniform(2.0, 4.0)) # Humand-like pause
-            human_interaction(page)
-
-            # Step 2: Navigate to result page
-            target_url = f"https://www.dhlottery.co.kr/gameResult.do?method=byWin765&drwNo={draw_no}"
-            print(f"[Playwright] Step 2: Accessing: {target_url}")
-            page.goto(target_url, timeout=60000, wait_until="domcontentloaded")
-            time.sleep(random.uniform(3.0, 5.0))
+            time.sleep(2)
             
-            # Close popups
-            try:
-                popups = page.query_selector_all("div[id^='pop'], div[class*='popup'], a[href*='close'], .btn_close")
-                for p_div in popups:
-                    if p_div.is_visible():
-                        p_div.click()
-                        print("[Playwright] Popup/Overlay closed.")
-            except: pass
+            # Close Popups
+            pop_btns = page.query_selector_all("a[href*='close'], button[class*='close'], .btn_close")
+            for b in pop_btns:
+                if b.is_visible(): b.click()
 
+            # 2. Hover and Click '당첨결과' -> '로또6/45 당첨결과'
+            print("[SuperHuman] Navigating through menus...")
+            page.hover("a:has-text('당첨결과')")
+            time.sleep(1)
+            page.click("a:has-text('로또6/45')") # Should lead to win result page
+            page.wait_for_load_state("networkidle")
+            
+            # 3. Handle Round Entry (Manual Typing)
+            print(f"[SuperHuman] Typing round {draw_no} manually...")
+            # On result page, there's usually a select or input for round. 
+            # Often it's an <input id="crntDrawNo"> or <select id="drwNo">.
+            # We'll try to find the input/select and type.
+            input_box = page.query_selector("input#drwNo, select#drwNo")
+            if input_box:
+                input_box.focus()
+                page.keyboard.press("Control+A")
+                page.keyboard.press("Backspace")
+                page.keyboard.type(str(draw_no), delay=100)
+                time.sleep(1)
+                page.keyboard.press("Enter")
+                # Alternatively find and click '조회' button
+                search_btn = page.query_selector("a#searchBtn, button#searchBtn, input[value='조회']")
+                if search_btn: search_btn.click()
+                page.wait_for_load_state("networkidle")
+
+            time.sleep(3) # Wait for page update
             human_interaction(page)
 
-            # Extract winning numbers
-            print("[Playwright] Step 3: Extracting numbers...")
+            # 4. Extract Numbers
             win_div = page.query_selector("div.win_result")
             if win_div:
-                num_div = win_div.query_selector("div.num.win")
-                if num_div:
-                    spans = num_div.query_selector_all("span.ball_645")
+                nd = win_div.query_selector("div.num.win")
+                if nd:
+                    spans = nd.query_selector_all("span.ball_645")
                     nums = [int(s.inner_text().strip()) for s in spans][:6]
                     bonus_div = win_div.query_selector("div.num.bonus")
                     if bonus_div:
                         bspan = bonus_div.query_selector("span.ball_645")
-                        if bspan:
-                            nums.append(int(bspan.inner_text().strip()))
+                        if bspan: nums.append(int(bspan.inner_text().strip()))
                     winning_numbers = nums
-                    print(f"[Playwright] Success! Raw numbers: {winning_numbers}")
-            else:
-                print("[Playwright] Round data not found. Current Title:", page.title())
+                    print(f"[SuperHuman] Extracted numbers: {winning_numbers}")
 
-            # Extract winner store table
-            print("[Playwright] Step 4: Extracting store table...")
+            # 5. Extract Stores
             table = page.query_selector("table.tbl_data")
             if table:
                 rows = table.query_selector_all("tbody tr")
-                print(f"[Playwright] Found {len(rows)} winner rows.")
                 for row in rows:
                     cols = row.query_selector_all("td")
                     if len(cols) >= 4:
                         name = cols[1].inner_text().strip()
                         method = cols[2].inner_text().strip()
                         address = normalize_address(cols[3].inner_text().strip())
-                        
-                        # Special handling for online center
-                        if "\ub3d9\ud589\ubcf5\uac7c" in name and "dhlottery" in name.lower():
-                            name = "\ub3d9\ud589\ubcf5\uac7c(dhlottery.co.kr)"
-                            address = "\uc41c\uc6b8 \uc11c\uc108\uad6c \ub128\ubd80\uc21c\ud644\ub85c 2423 \ud55c\ube5b\ud0c0\uc6cc"
-
+                        if "dhlottery" in name.lower():
+                             name = "\ub3d9\ud589\ubcf5\uac7c(dhlottery.co.kr)"
+                             address = "\uc41c\uc6b8 \uc11c\uc108\uad6c \ub128\ubd80\uc21c\ud644\ub85c 2423 \ud55c\ube5b\ud0c0\uc6cc"
                         records.append({"r": draw_no, "n": name, "m": method, "a": address})
-            else:
-                print("[Playwright] Winner table not located.")
 
-        except Exception as e:
-            print(f"[Playwright] Critical Error: {e}")
-        finally:
-            browser.close()
-
+        except Exception as e: print(f"[SuperHuman] Error: {e}")
+        finally: browser.close()
     return records, winning_numbers
 
-
-def scrape_with_requests_fallback(draw_no):
-    """Fallback: requests + BeautifulSoup (not human-like)"""
-    from bs4 import BeautifulSoup
-    print(f"[requests] Simple fallback for round {draw_no}")
-    session = requests.Session()
-    session.headers.update(BASE_HEADERS)
-    try:
-        session.get("https://www.dhlottery.co.kr/main", timeout=15)
-        time.sleep(1)
-        url = f"https://www.dhlottery.co.kr/gameResult.do?method=byWin765&drwNo={draw_no}"
-        r = session.get(url, timeout=15)
-        soup = BeautifulSoup(r.text, "html.parser")
-        records = []
-        winning_numbers = None
-
-        div_win = soup.find("div", class_="win_result")
-        if div_win:
-            nd = div_win.find("div", class_="num win")
-            if nd:
-                nums = [int(s.get_text()) for s in nd.find_all("span", class_="ball_645")][:6]
-                bd = div_win.find("div", class_="num bonus")
-                if bd:
-                    bs2 = bd.find("span", class_="ball_645")
-                    if bs2:
-                        nums.append(int(bs2.get_text()))
-                winning_numbers = nums
-
-        tbl = soup.find("table", {"class": "tbl_data"})
-        if tbl:
-            for row in tbl.find("tbody").find_all("tr"):
-                cols = row.find_all("td")
-                if len(cols) >= 4:
-                    records.append({
-                        "r": draw_no,
-                        "n": cols[1].get_text(strip=True),
-                        "m": cols[2].get_text(strip=True),
-                        "a": normalize_address(cols[3].get_text(strip=True)),
-                    })
-        return records, winning_numbers
-    except Exception as e:
-        print(f"[requests] Error: {e}")
-        return [], None
-
-
 def update_historic_file(draw_no, numbers):
-    if not Path(HISTORIC_FILE).exists():
-        return
+    if not Path(HISTORIC_FILE).exists(): return
     try:
         df = pd.read_excel(HISTORIC_FILE)
         rcol = df.columns[0]
-        if draw_no in df[rcol].values:
-            print(f"Round {draw_no} already exists.")
-            return
-        num_cols = [c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" not in str(c)]
-        bonus_cols = [c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" in str(c)]
+        if draw_no in df[rcol].values: return
         new_row = {rcol: draw_no}
-        for i, col in enumerate(num_cols[:6]):
-            if i < len(numbers):
-                new_row[col] = numbers[i]
-        if bonus_cols and len(numbers) > 6:
-            new_row[bonus_cols[0]] = numbers[6]
-        df = pd.concat([pd.DataFrame([new_row]), df], ignore_index=True)
-        df = df.sort_values(by=rcol, ascending=False)
+        for i, val in enumerate(numbers[:6]):
+            col = [c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" not in str(c)][i]
+            new_row[col] = val
+        if len(numbers) > 6:
+            new_row[[c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" in str(c)][0]] = numbers[6]
+        df = pd.concat([pd.DataFrame([new_row]), df], ignore_index=True).sort_values(by=rcol, ascending=False)
         df.to_excel(HISTORIC_FILE, index=False)
-        print(f"Historic data updated for round {draw_no}.")
-    except Exception as e:
-        print(f"Historic sync failed: {e}")
-
+    except: pass
 
 def build_history_json():
-    OUTPUT_JSON = "lotto_history.json"
-    if not Path(HISTORIC_FILE).exists():
-        return
+    if not Path(HISTORIC_FILE).exists(): return
     try:
         df = pd.read_excel(HISTORIC_FILE)
         rcol = df.columns[0]
-        history_map = {}
-        for _, row in df.iterrows():
-            rnum = int(row[rcol])
-            num_cols = [c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" not in str(c)]
-            bonus_cols = [c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" in str(c)]
-            nums = [int(row[c]) for c in num_cols[:6] if pd.notna(row[c])]
-            if bonus_cols and pd.notna(row[bonus_cols[0]]):
-                nums.append(int(row[bonus_cols[0]]))
-            history_map[str(rnum)] = nums
-        with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
-            json.dump(history_map, f, ensure_ascii=False)
-        print(f"JSON rebuilt: {OUTPUT_JSON}")
-    except Exception as e:
-        print(f"JSON build error: {e}")
-
+        data = {str(int(row[rcol])): [int(row[c]) for c in df.columns[1:] if pd.notna(row[c])] for _, row in df.iterrows()}
+        with open("lotto_history.json", "w", encoding="utf-8") as f: json.dump(data, f, ensure_ascii=False)
+    except: pass
 
 def get_current_round():
-    """Detect current round by scraping the main page"""
-    from bs4 import BeautifulSoup
     try:
-        session = requests.Session()
-        session.headers.update(BASE_HEADERS)
-        session.get("https://www.dhlottery.co.kr/main", timeout=15)
-        r = session.get("https://www.dhlottery.co.kr/common.do?method=main", timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        el = soup.find("strong", id="lottoDrwNo")
-        if el: return int(el.get_text().strip())
-    except: pass
-    return None
-
+        r = requests.get("https://www.dhlottery.co.kr/common.do?method=main", headers=BASE_HEADERS, timeout=10)
+        from bs4 import BeautifulSoup
+        el = BeautifulSoup(r.text, "html.parser").find("strong", id="lottoDrwNo")
+        return int(el.get_text().strip())
+    except: return None
 
 def main():
-    if not Path(JSON_FILE).exists():
-        sys.exit(1)
-
-    with open(JSON_FILE, "r", encoding="utf-8") as f:
-        all_data = json.load(f)
-
+    with open(JSON_FILE, "r", encoding="utf-8") as f: all_data = json.load(f)
     last_round = max([d["r"] for d in all_data]) if all_data else 0
-    print(f"Current Max Round in Data: {last_round}")
+    current_round = get_current_round() or (last_round + 1)
+    if last_round >= current_round: return
 
-    site_round = get_current_round()
-    current_round = site_round if site_round else last_round + 1
-    print(f"Determined Target Round: {current_round}")
-
-    if last_round >= current_round:
-        print("Everything is synchronized.")
-        return
-
-    new_records_base = []
     for r in range(last_round + 1, current_round + 1):
-        if PLAYWRIGHT_AVAILABLE:
-            recs, nums = scrape_with_playwright(r)
-        else:
-            recs, nums = scrape_with_requests_fallback(r)
-
-        if not recs or not nums:
-            print(f"Round {r} data not fully captured - Retrying soon.")
-            sys.exit(1)
-
-        if nums:
-            update_historic_file(r, nums)
-        if recs:
-            new_records_base.extend(recs)
-        time.sleep(2)
-
-    if not new_records_base:
-        sys.exit(1)
-
-    # Cache geocode
-    cache = {}
-    if Path(CACHE_FILE).exists():
-        try:
+        recs, nums = scrape_super_human(r) if PLAYWRIGHT_AVAILABLE else ([], None)
+        if not recs or not nums: sys.exit(1)
+        update_historic_file(r, nums)
+        
+        # Geocode and Save
+        cache = {}
+        if Path(CACHE_FILE).exists():
             cdf = pd.read_excel(CACHE_FILE)
             cache = {row["a"]: (row["lat"], row["lng"]) for _, row in cdf.iterrows()}
-        except: pass
+        
+        for rec in recs:
+            lat, lng = geocode(rec["a"], KAKAO_API_KEY, cache)
+            rec["lat"], rec["lng"] = lat, lng
+        
+        all_data = recs + all_data
+        all_data.sort(key=lambda x: x["r"], reverse=True)
+        with open(JSON_FILE, "w", encoding="utf-8") as f: json.dump(all_data, f, ensure_ascii=False, indent=2)
+        with open(JS_FILE, "w", encoding="utf-8") as f: f.write("const lottoData = " + json.dumps(all_data, ensure_ascii=False, indent=2) + ";")
+        
+        if Path(EXCEL_FILE).exists():
+           try:
+               df_old = pd.read_excel(EXCEL_FILE)
+               pd.concat([pd.DataFrame([[r["r"], None, r["n"], r["m"], r["a"]] for r in recs], columns=df_old.columns[:5]), df_old], ignore_index=True).to_excel(EXCEL_FILE, index=False)
+           except: pass
+        
+        if cache: pd.DataFrame([{"a": k, "lat": v[0], "lng": v[1]} for k, v in cache.items()]).to_excel(CACHE_FILE, index=False)
+        build_history_json()
+        print(f"DONE: Round {r} added.")
 
-    final_new_records = []
-    for rec in new_records_base:
-        lat, lng = geocode(rec["a"], KAKAO_API_KEY, cache)
-        rec["lat"], rec["lng"] = lat, lng
-        final_new_records.append(rec)
-
-    # Save
-    combined = final_new_records + all_data
-    combined.sort(key=lambda x: x["r"], reverse=True)
-
-    with open(JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(combined, f, ensure_ascii=False, indent=2)
-
-    with open(JS_FILE, "w", encoding="utf-8") as f:
-        f.write("const lottoData = " + json.dumps(combined, ensure_ascii=False, indent=2) + ";")
-
-    if Path(EXCEL_FILE).exists():
-        try:
-            df_old = pd.read_excel(EXCEL_FILE)
-            ndf = pd.DataFrame(
-                [[r["r"], None, r["n"], r["m"], r["a"]] for r in final_new_records],
-                columns=df_old.columns[:5],
-            )
-            pd.concat([ndf, df_old], ignore_index=True).to_excel(EXCEL_FILE, index=False)
-        except: pass
-
-    if cache:
-        pd.DataFrame([{"a": k, "lat": v[0], "lng": v[1]} for k, v in cache.items()]).to_excel(
-            CACHE_FILE, index=False
-        )
-
-    build_history_json()
-    print(f"PROCESS COMPLETED. Round {current_round} integrated.")
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
