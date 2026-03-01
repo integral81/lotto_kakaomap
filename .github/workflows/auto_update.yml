@@ -9,6 +9,7 @@ on:
 jobs:
   update-data:
     runs-on: ubuntu-latest
+    timeout-minutes: 300  # 최대 5시간 (20분 × 12회 = 240분 + 여유)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,15 +24,46 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 pandas openpyxl
 
-      - name: Run auto-update script
+      - name: Run auto-update script (20분 간격 자동 재시도)
         env:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
-        run: python auto_update.py
+        run: |
+          MAX_RETRIES=12
+          ATTEMPT=0
+          SUCCESS=false
+
+          while [ $ATTEMPT -lt $MAX_RETRIES ] && [ "$SUCCESS" = "false" ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "========================================"
+            echo "[시도 $ATTEMPT / $MAX_RETRIES] - $(date '+%Y-%m-%d %H:%M:%S UTC')"
+            echo "========================================"
+
+            if python auto_update.py; then
+              SUCCESS=true
+              echo ""
+              echo "✅ 업데이트 성공! (시도 $ATTEMPT 회만에 성공)"
+            else
+              EXIT_CODE=$?
+              echo ""
+              echo "❌ 시도 $ATTEMPT 실패 (exit code: $EXIT_CODE)"
+              if [ $ATTEMPT -lt $MAX_RETRIES ]; then
+                NEXT=$((ATTEMPT + 1))
+                echo "⏳ 20분 후 재시도합니다... (다음 시도: $NEXT / $MAX_RETRIES)"
+                sleep 1200
+              fi
+            fi
+          done
+
+          if [ "$SUCCESS" = "false" ]; then
+            echo ""
+            echo "🚨 모든 시도($MAX_RETRIES 회) 실패. 워크플로우를 종료합니다."
+            exit 1
+          fi
 
       - name: Commit and push changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add lotto_data.json lotto_data.js lotto_history.json temp_data.xlsx geocoded_cache_healthy.xlsx
+          git add lotto_data.json lotto_data.js lotto_history.json temp_data.xlsx geocoded_cache_healthy.xlsx lotto_historic_numbers_1_1209_Final.xlsx
           git commit -m "Data: Weekly update for new lottery round" || echo "No changes to commit"
           git push
