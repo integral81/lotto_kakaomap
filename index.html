@@ -4436,7 +4436,14 @@
                 }
 
                 // Re-filter allData for this specific shop to get rounds.
-                const rounds = allData.filter(d => d.n === name && d.a === addr).map(d => ({ r: d.r, m: d.m }));
+                // Aggregated entries have a 'rounds' property. Individual entries do not.
+                let shopEntry = allData.find(d => d.n === name && d.a === addr);
+                let rounds = [];
+                if (shopEntry && shopEntry.rounds) {
+                    rounds = shopEntry.rounds.map(r => ({ r: r.r, m: r.m }));
+                } else {
+                    rounds = allData.filter(d => d.n === name && d.a === addr).map(d => ({ r: d.r, m: d.m }));
+                }
 
                 currentShopData = { name, addr, lat, lng, totalWins, rounds };
 
@@ -4458,8 +4465,8 @@
                 // Reset UI State (CRITICAL: Reset result text structure)
                 const resultInfo = document.getElementById('resultInfoText');
                 if (resultInfo) {
-                    resultInfo.innerHTML = `이 명당은 과거 <strong id="paramHCount" style="color:#fae100;">0</strong>번의 1등을 배출했습니다.<br>
-        (<span id="paramRounds"></span> 등)`;
+                    resultInfo.innerHTML = `이 명당은 과거 <strong id="paramHCount" style="color:#fae100;">${totalWins}</strong>번의 1등을 배출했습니다.<br>
+        (<span id="paramRounds"></span>)`;
                 }
 
                 modeSelection.style.display = 'flex';
@@ -4840,11 +4847,13 @@
                     // Update Info Text (Shared stats)
                     const container = document.getElementById('resultInfoText');
                     if (container) {
+                        const winCount = currentShopData.totalWins || resultAuto.historyCount;
+                        const latestR = resultAuto.relatedRounds && resultAuto.relatedRounds.length > 0 ? resultAuto.relatedRounds[0] : '';
+
                         container.innerHTML =
-                            `이 명당은 과거 <strong id="paramHCount" style="color:#fae100;">${resultAuto.historyCount}</strong>번의
+                            `이 명당은 과거 <strong id="paramHCount" style="color:#fae100;">${winCount}</strong>번의
                         1등을 배출했습니다.<br>` +
-                            `(<span id="paramRounds">${resultAuto.relatedRounds.join(', ') + (resultAuto.historyCount > 5 ?
-                                '...' : '')}</span> 등)`;
+                            `(<span id="paramRounds">가장 최신 : ${latestR}회</span>)`;
                     }
 
                     // Helper to create a unified row component
