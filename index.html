@@ -6972,7 +6972,21 @@
                     const btn = document.createElement('div');
                     btn.className = 'navi-ball-btn battle-ball';
                     if (naviSelections.step1.includes(n)) btn.classList.add('selected');
-                    btn.innerText = n;
+
+                    // 정교한 추천을 위해 이월 확률 표시 추가
+                    const prob = side === 'left' ? naviEngine.getCarryOverProbability(n) : null;
+                    const probHTML = prob ? `<div class="prob-badge">${prob}%</div>` : '';
+
+                    // 가장 가중치가 높은 첫 번째 공에 특별 뱃지 부여
+                    const isTopPick = (side === 'left' && n === carryNums[0]) || (side === 'right' && n === neighNums[0]);
+                    const topPickHTML = isTopPick ? `<div class="top-pick-label">${side === 'left' ? 'KINOV HOT' : 'BEST MATCH'}</div>` : '';
+
+                    btn.innerHTML = `
+                        ${topPickHTML}
+                        <span class="ball-num">${n}</span>
+                        ${probHTML}
+                    `;
+
                     btn.onclick = () => {
                         // Single selection logic
                         document.querySelectorAll('.battle-ball').forEach(el => el.classList.remove('selected'));
@@ -8378,21 +8392,71 @@
             }
 
             .navi-ball-btn.battle-ball {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
+                width: 72px;
+                /* Increased size for badges */
+                height: 72px;
+                font-size: 28px;
                 border: 3px solid rgba(255, 255, 255, 0.5);
                 background: rgba(255, 255, 255, 0.2);
                 color: white;
-                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
             }
 
             .navi-ball-btn.battle-ball.selected {
                 background: white;
                 color: var(--secondary);
                 border-color: white;
-                transform: scale(1.1);
+                transform: scale(1.1) translateY(-5px);
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
             }
+
+            .prob-badge {
+                position: absolute;
+                bottom: -8px;
+                background: #fae100;
+                color: #333;
+                font-size: 11px;
+                font-weight: 900;
+                padding: 1px 6px;
+                border-radius: 10px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+                border: 1px solid white;
+                z-index: 3;
+            }
+
+            .top-pick-label {
+                position: absolute;
+                top: -12px;
+                background: #ff3d00;
+                color: white;
+                font-size: 10px;
+                font-weight: 900;
+                padding: 2px 8px;
+                border-radius: 5px;
+                box-shadow: 0 2px 8px rgba(255, 61, 0, 0.5);
+                white-space: nowrap;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                z-index: 3;
+                animation: pulse 1.5s infinite;
+            }
+
+            .side-left .top-pick-label {
+                background: #ffd700;
+                color: #b71c1c;
+            }
+
+            /* Carryover Hot Pick */
+            .side-right .top-pick-label {
+                background: #00e5ff;
+                color: #0d47a1;
+            }
+
+            /* Neighbor Best Match */
 
             .battle-theme-text {
                 font-size: 24px;

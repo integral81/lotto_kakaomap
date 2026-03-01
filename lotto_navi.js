@@ -128,11 +128,11 @@ class LottoNaviEngine {
 
     /**
      * 특정 번호 n의 가중치 P(n) 계산
-     * P(n) = (역대 출현 빈도) * (최근 회귀 일치도) * (사용자 선호도)
+     * P(n) = (역대 출현 빈도) * (최근 회귀 일치도) * (이월 성능 가중치) * (사용자 선호도)
      */
-    calculateWeight(n, userPreference = 1.0) {
+    calculateWeight(n, userPreference = 1.0, isCarryOverContext = false) {
         const num = Number(n);
-        // 역대 출현 빈도 (전체 회차 중 n이 나온 횟수)
+        // 역대 출현 빈도
         let appearanceCount = 0;
         let totalRounds = Object.keys(this.history).length;
         for (const round in this.history) {
@@ -145,11 +145,46 @@ class LottoNaviEngine {
         for (let i = 0; i < 10; i++) {
             const r = this.latestRound - i;
             if (this.history[r]?.slice(0, 6).map(Number).includes(num)) {
-                recentFactor += (10 - i) * 0.1; // 최근일수록 가중치 높음
+                recentFactor += (10 - i) * 0.1;
             }
         }
 
-        return frequencyFactor * recentFactor * userPreference;
+        // 이월 성능 가중치 (Carry-over Ratio)
+        // 역대 이월 횟수 / 역대 출현 횟수
+        let carryOverCount = 0;
+        const rounds = Object.keys(this.history).map(Number).sort((a, b) => a - b);
+        for (let i = 1; i < rounds.length; i++) {
+            const prev = this.history[rounds[i - 1]].slice(0, 6).map(Number);
+            const curr = this.history[rounds[i]].slice(0, 6).map(Number);
+            if (prev.includes(num) && curr.includes(num)) carryOverCount++;
+        }
+        const carryOverRatio = appearanceCount > 0 ? (carryOverCount / appearanceCount) : 0;
+
+        // 이월수 추천 상황(Step 1)일 경우 이월 확률 가중치를 더 강하게 적용
+        const carryOverFactor = isCarryOverContext ? (1.0 + carryOverRatio * 2) : (1.0 + carryOverRatio);
+
+        return frequencyFactor * recentFactor * carryOverFactor * userPreference;
+    }
+
+    /**
+     * 특정 번호의 이월 확률(%) 반환
+     */
+    getCarryOverProbability(n) {
+        const num = Number(n);
+        let appearanceCount = 0;
+        let carryOverCount = 0;
+        const rounds = Object.keys(this.history).map(Number).sort((a, b) => a - b);
+        for (let i = 0; i < rounds.length; i++) {
+            const curr = this.history[rounds[i]].slice(0, 6).map(Number);
+            if (curr.includes(num)) {
+                appearanceCount++;
+                if (i > 0) {
+                    const prev = this.history[rounds[i - 1]].slice(0, 6).map(Number);
+                    if (prev.includes(num)) carryOverCount++;
+                }
+            }
+        }
+        return appearanceCount > 0 ? (carryOverCount / appearanceCount * 100).toFixed(1) : "0.0";
     }
 
     /**
@@ -159,7 +194,7 @@ class LottoNaviEngine {
         const baseNumbers = this.history[round]?.slice(0, 6) || [];
         const weighted = baseNumbers.map(n => ({
             num: n,
-            weight: this.calculateWeight(n)
+            weight: this.calculateWeight(n, 1.0, true)
         })).sort((a, b) => b.weight - a.weight);
         return weighted.slice(0, 2).map(x => x.num);
     }
