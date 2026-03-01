@@ -4774,7 +4774,14 @@
                         mainContainer.style.alignItems = 'center';
                         mainContainer.style.width = '100%';
 
-                        // 1. Balls Row
+                        // --- NEW: Group Wrapper for precise right-alignment ---
+                        const groupWrapper = document.createElement('div');
+                        groupWrapper.style.display = 'flex';
+                        groupWrapper.style.flexDirection = 'column';
+                        groupWrapper.style.alignItems = 'flex-end'; // Align daughter rows to the right
+                        groupWrapper.style.width = 'fit-content'; // Shrink to ballsRow width
+
+                        // 1. Balls Row (This defines the group width)
                         const ballsRow = document.createElement('div');
                         ballsRow.style.display = 'flex';
                         ballsRow.style.justifyContent = 'center';
@@ -4785,20 +4792,18 @@
                             const ball = document.createElement('div');
                             ball.className = 'ball ' + getBallColor(n);
                             ball.innerText = n;
-                            // Add slight shadow for premium look as in image
                             ball.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
                             ballsRow.appendChild(ball);
                         });
-                        mainContainer.appendChild(ballsRow);
+                        groupWrapper.appendChild(ballsRow);
 
-                        // 2. Buttons Row (Below balls, aligned right)
+                        // 2. Buttons Row (Inside group, right-aligned)
                         const buttonsRow = document.createElement('div');
                         buttonsRow.style.display = 'flex';
                         buttonsRow.style.flexDirection = 'row';
                         buttonsRow.style.justifyContent = 'flex-end';
                         buttonsRow.style.gap = '10px';
-                        buttonsRow.style.width = '100%';
-                        buttonsRow.style.paddingRight = '5px'; // Minimal offset to align with balls
+                        buttonsRow.style.width = '100%'; // Match group width
 
                         // Copy Button
                         const copyBtn = document.createElement('div');
@@ -4820,7 +4825,8 @@
                         };
                         buttonsRow.appendChild(omrBtn);
 
-                        mainContainer.appendChild(buttonsRow);
+                        groupWrapper.appendChild(buttonsRow);
+                        mainContainer.appendChild(groupWrapper);
                         return mainContainer;
                     };
 
@@ -4855,7 +4861,14 @@
                         mainContainer.style.flexDirection = 'column';
                         mainContainer.style.alignItems = 'center';
                         mainContainer.style.width = '100%';
-                        mainContainer.style.marginBottom = '8px';
+                        mainContainer.style.marginBottom = '12px';
+
+                        // --- NEW: Group Wrapper for precise right-alignment ---
+                        const groupWrapper = document.createElement('div');
+                        groupWrapper.style.display = 'flex';
+                        groupWrapper.style.flexDirection = 'column';
+                        groupWrapper.style.alignItems = 'flex-end';
+                        groupWrapper.style.width = 'fit-content';
 
                         // 1. Top Row: Label + Balls
                         const rowWrapper = document.createElement('div');
@@ -4888,9 +4901,9 @@
                             ballsRow.appendChild(ball);
                         });
                         rowWrapper.appendChild(ballsRow);
-                        mainContainer.appendChild(rowWrapper);
+                        groupWrapper.appendChild(rowWrapper);
 
-                        // 2. Bottom Row: Buttons (Aligned with balls)
+                        // 2. Bottom Row: Buttons (Aligned with right edge of rowWrapper)
                         const buttonsRow = document.createElement('div');
                         buttonsRow.style.display = 'flex';
                         buttonsRow.style.flexDirection = 'row';
@@ -4898,7 +4911,6 @@
                         buttonsRow.style.gap = '10px';
                         buttonsRow.style.width = '100%';
                         buttonsRow.style.marginTop = '2px';
-                        buttonsRow.style.paddingRight = '5px';
 
                         // Copy Button
                         const copyBtn = document.createElement('div');
@@ -4920,7 +4932,8 @@
                         };
                         buttonsRow.appendChild(omrBtn);
 
-                        mainContainer.appendChild(buttonsRow);
+                        groupWrapper.appendChild(buttonsRow);
+                        mainContainer.appendChild(groupWrapper);
 
                         // Link for Manual
                         if (isManual) {
