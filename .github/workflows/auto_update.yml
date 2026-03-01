@@ -31,7 +31,7 @@ jobs:
         env:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
         run: |
-          MAX_RETRIES=12
+          MAX_RETRIES=48
           ATTEMPT=0
           SUCCESS=false
 
@@ -51,8 +51,8 @@ jobs:
               echo "Attempt $ATTEMPT failed (exit code: $EXIT_CODE)"
               if [ $ATTEMPT -lt $MAX_RETRIES ]; then
                 NEXT=$((ATTEMPT + 1))
-                echo "Waiting 20 minutes before retry... (next: $NEXT / $MAX_RETRIES)"
-                sleep 1200
+                echo "Waiting 5 minutes before retry... (next: $NEXT / $MAX_RETRIES)"
+                sleep 300
               fi
             fi
           done
