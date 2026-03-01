@@ -57,7 +57,7 @@ def geocode(address, api_key, cache):
 
 
 def scrape_with_playwright(draw_no):
-    """Use headless Chromium to bypass bot detection on dhlottery.co.kr"""
+    """Use headless Chromium to bypass bot detection and handle popups on dhlottery.co.kr"""
     print("[Playwright] Scraping round", draw_no)
     records = []
     winning_numbers = None
@@ -86,13 +86,30 @@ def scrape_with_playwright(draw_no):
 
         try:
             print("[Playwright] Step 1: Visit main page to warm session...")
-            page.goto("https://www.dhlottery.co.kr/main", timeout=30000, wait_until="domcontentloaded")
-            page.wait_for_timeout(2000)
+            page.goto("https://www.dhlottery.co.kr/main", timeout=45000)
+            page.wait_for_timeout(3000)
+
+            # Close any popups if they exist
+            print("[Playwright] Checking for popups...")
+            try:
+                # Common popup close buttons in dhlottery
+                pop_close = page.query_selector_all("a[href*='close'], button[class*='close'], .close")
+                for btn in pop_close:
+                    if btn.is_visible():
+                        btn.click()
+                        print("[Playwright] Popup closed.")
+            except: pass
 
             target_url = "https://www.dhlottery.co.kr/gameResult.do?method=byWin765&drwNo=" + str(draw_no)
             print("[Playwright] Step 2: Loading result page:", target_url)
-            page.goto(target_url, timeout=30000, wait_until="domcontentloaded")
-            page.wait_for_timeout(3000)
+            page.goto(target_url, timeout=45000)
+            
+            # Wait for content to appear
+            print("[Playwright] Waiting for selectors...")
+            try:
+                page.wait_for_selector("div.win_result", timeout=10000)
+            except:
+                print("[Playwright] Timeout waiting for win_result div.")
 
             # Extract winning numbers
             win_div = page.query_selector("div.win_result")
@@ -107,11 +124,11 @@ def scrape_with_playwright(draw_no):
                         if bspan:
                             nums.append(int(bspan.inner_text().strip()))
                     winning_numbers = nums
-                    print("[Playwright] Winning numbers:", winning_numbers)
+                    print("[Playwright] Winning numbers extracted:", winning_numbers)
             else:
-                print("[Playwright] win_result div NOT found - page may not be loaded properly")
-                page_text = page.content()
-                print("[Playwright] Page excerpt:", page_text[:300])
+                print("[Playwright] win_result div NOT found.")
+                # Diagnostic: print title
+                print("[Playwright] Actual Page Title:", page.title())
 
             # Extract winner store table
             table = page.query_selector("table.tbl_data")
@@ -124,9 +141,15 @@ def scrape_with_playwright(draw_no):
                         name = cols[1].inner_text().strip()
                         method = cols[2].inner_text().strip()
                         address = normalize_address(cols[3].inner_text().strip())
+                        
+                        # Special handling for online center
+                        if "\ub3d9\ud589\ubcf5\uac7c" in name and "dhlottery" in name.lower():
+                            name = "\ub3d9\ud589\ubcf5\uac7c(dhlottery.co.kr)"
+                            address = "\uc41c\uc6b8 \uc11c\uc108\uad6c \ub128\ubd80\uc21c\ud644\ub85c 2423 \ud55c\ube5b\ud0c0\uc6cc"
+
                         records.append({"r": draw_no, "n": name, "m": method, "a": address})
             else:
-                print("[Playwright] Store table NOT found for round", draw_no)
+                print("[Playwright] Store table NOT found.")
 
         except Exception as e:
             print("[Playwright] Error:", e)
@@ -229,7 +252,7 @@ def build_history_json():
 
 
 def get_current_round():
-    """Detect latest round number from dhlottery main page"""
+    """Detect latest round number via simple requests first"""
     from bs4 import BeautifulSoup
     try:
         session = requests.Session()
@@ -240,8 +263,7 @@ def get_current_round():
         el = soup.find("strong", id="lottoDrwNo")
         if el:
             return int(el.get_text().strip())
-    except Exception as e:
-        print("get_current_round error:", e)
+    except: pass
     return None
 
 
@@ -259,9 +281,9 @@ def main():
     current_round = get_current_round()
     if current_round is None:
         current_round = last_round + 1
-        print("Could not detect current round, assuming:", current_round)
+        print("Could not detect current round, target:", current_round)
     else:
-        print("Current round from site:", current_round)
+        print("Latest round on site:", current_round)
 
     if last_round >= current_round:
         print("Data is already up to date.")
@@ -274,8 +296,8 @@ def main():
         else:
             recs, nums = scrape_with_requests_fallback(r)
 
-        if not recs and not nums:
-            print("No data for round", r, "- probably not published yet.")
+        if not recs or not nums:
+            print("Insufficient data for round", r, "- Exit to retry loop.")
             sys.exit(1)
 
         if nums:
