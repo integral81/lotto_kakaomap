@@ -1,4 +1,4 @@
-﻿import json, os, re, time, sys
+﻿import json, os, re, time, sys, random
 from pathlib import Path
 import pandas as pd
 import requests
@@ -55,10 +55,24 @@ def geocode(address, api_key, cache):
         print("Geocoding error:", e)
     return None, None
 
+def human_interaction(page):
+    """Simulate basic human-like behavior like mouse movement and scrolling"""
+    try:
+        # Move mouse to random spots
+        for _ in range(random.randint(2, 4)):
+            x, y = random.randint(100, 700), random.randint(100, 500)
+            page.mouse.move(x, y, steps=10)
+            time.sleep(random.uniform(0.2, 0.5))
+        
+        # Random scroll
+        page.mouse.wheel(0, random.randint(200, 500))
+        time.sleep(random.uniform(0.5, 1.0))
+        page.mouse.wheel(0, -random.randint(100, 200))
+    except: pass
 
 def scrape_with_playwright(draw_no):
-    """Use headless Chromium to bypass bot detection and handle popups on dhlottery.co.kr"""
-    print("[Playwright] Scraping round", draw_no)
+    """Use advanced human-like interaction to bypass dhlottery bot detection"""
+    print(f"[Playwright] Advanced human-like scraping for round {draw_no}...")
     records = []
     winning_numbers = None
 
@@ -70,48 +84,55 @@ def scrape_with_playwright(draw_no):
                 "--disable-blink-features=AutomationControlled",
                 "--disable-dev-shm-usage",
                 "--disable-gpu",
+                "--window-size=1280,800"
             ],
         )
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             locale="ko-KR",
             viewport={"width": 1280, "height": 800},
+            device_scale_factor=1,
+            has_touch=False,
+            is_mobile=False
         )
+        
+        # More advanced fingerprint evasion
         page = context.new_page()
-        # Hide automation fingerprints
         page.add_init_script(
-            "Object.defineProperty(navigator,'webdriver',{get:()=>undefined});"
-            "Object.defineProperty(navigator,'plugins',{get:()=>[1,2,3]});"
+            """
+            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+            window.chrome = { runtime: {} };
+            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
+            Object.defineProperty(navigator, 'languages', {get: () => ['ko-KR', 'ko', 'en-US', 'en']});
+            """
         )
 
         try:
-            print("[Playwright] Step 1: Visit main page to warm session...")
-            page.goto("https://www.dhlottery.co.kr/main", timeout=45000)
-            page.wait_for_timeout(3000)
+            # Step 1: Visit main page
+            print("[Playwright] Step 1: Warming up session on main page...")
+            page.goto("https://www.dhlottery.co.kr/main", timeout=60000, wait_until="networkidle")
+            time.sleep(random.uniform(2.0, 4.0)) # Humand-like pause
+            human_interaction(page)
 
-            # Close any popups if they exist
-            print("[Playwright] Checking for popups...")
+            # Step 2: Navigate to result page
+            target_url = f"https://www.dhlottery.co.kr/gameResult.do?method=byWin765&drwNo={draw_no}"
+            print(f"[Playwright] Step 2: Accessing: {target_url}")
+            page.goto(target_url, timeout=60000, wait_until="domcontentloaded")
+            time.sleep(random.uniform(3.0, 5.0))
+            
+            # Close popups
             try:
-                # Common popup close buttons in dhlottery
-                pop_close = page.query_selector_all("a[href*='close'], button[class*='close'], .close")
-                for btn in pop_close:
-                    if btn.is_visible():
-                        btn.click()
-                        print("[Playwright] Popup closed.")
+                popups = page.query_selector_all("div[id^='pop'], div[class*='popup'], a[href*='close'], .btn_close")
+                for p_div in popups:
+                    if p_div.is_visible():
+                        p_div.click()
+                        print("[Playwright] Popup/Overlay closed.")
             except: pass
 
-            target_url = "https://www.dhlottery.co.kr/gameResult.do?method=byWin765&drwNo=" + str(draw_no)
-            print("[Playwright] Step 2: Loading result page:", target_url)
-            page.goto(target_url, timeout=45000)
-            
-            # Wait for content to appear
-            print("[Playwright] Waiting for selectors...")
-            try:
-                page.wait_for_selector("div.win_result", timeout=10000)
-            except:
-                print("[Playwright] Timeout waiting for win_result div.")
+            human_interaction(page)
 
             # Extract winning numbers
+            print("[Playwright] Step 3: Extracting numbers...")
             win_div = page.query_selector("div.win_result")
             if win_div:
                 num_div = win_div.query_selector("div.num.win")
@@ -124,17 +145,16 @@ def scrape_with_playwright(draw_no):
                         if bspan:
                             nums.append(int(bspan.inner_text().strip()))
                     winning_numbers = nums
-                    print("[Playwright] Winning numbers extracted:", winning_numbers)
+                    print(f"[Playwright] Success! Raw numbers: {winning_numbers}")
             else:
-                print("[Playwright] win_result div NOT found.")
-                # Diagnostic: print title
-                print("[Playwright] Actual Page Title:", page.title())
+                print("[Playwright] Round data not found. Current Title:", page.title())
 
             # Extract winner store table
+            print("[Playwright] Step 4: Extracting store table...")
             table = page.query_selector("table.tbl_data")
             if table:
                 rows = table.query_selector_all("tbody tr")
-                print("[Playwright] Store rows found:", len(rows))
+                print(f"[Playwright] Found {len(rows)} winner rows.")
                 for row in rows:
                     cols = row.query_selector_all("td")
                     if len(cols) >= 4:
@@ -149,10 +169,10 @@ def scrape_with_playwright(draw_no):
 
                         records.append({"r": draw_no, "n": name, "m": method, "a": address})
             else:
-                print("[Playwright] Store table NOT found.")
+                print("[Playwright] Winner table not located.")
 
         except Exception as e:
-            print("[Playwright] Error:", e)
+            print(f"[Playwright] Critical Error: {e}")
         finally:
             browser.close()
 
@@ -160,15 +180,15 @@ def scrape_with_playwright(draw_no):
 
 
 def scrape_with_requests_fallback(draw_no):
-    """Fallback: requests + BeautifulSoup (may fail on cloud IPs)"""
+    """Fallback: requests + BeautifulSoup (not human-like)"""
     from bs4 import BeautifulSoup
-    print("[requests] Scraping round", draw_no)
+    print(f"[requests] Simple fallback for round {draw_no}")
     session = requests.Session()
     session.headers.update(BASE_HEADERS)
     try:
         session.get("https://www.dhlottery.co.kr/main", timeout=15)
         time.sleep(1)
-        url = "https://www.dhlottery.co.kr/gameResult.do?method=byWin765&drwNo=" + str(draw_no)
+        url = f"https://www.dhlottery.co.kr/gameResult.do?method=byWin765&drwNo={draw_no}"
         r = session.get(url, timeout=15)
         soup = BeautifulSoup(r.text, "html.parser")
         records = []
@@ -199,7 +219,7 @@ def scrape_with_requests_fallback(draw_no):
                     })
         return records, winning_numbers
     except Exception as e:
-        print("[requests] Error:", e)
+        print(f"[requests] Error: {e}")
         return [], None
 
 
@@ -210,7 +230,7 @@ def update_historic_file(draw_no, numbers):
         df = pd.read_excel(HISTORIC_FILE)
         rcol = df.columns[0]
         if draw_no in df[rcol].values:
-            print("Round", draw_no, "already in historic file.")
+            print(f"Round {draw_no} already exists.")
             return
         num_cols = [c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" not in str(c)]
         bonus_cols = [c for c in df.columns[1:] if "\ubcf4\ub108\uc2a4" in str(c)]
@@ -223,9 +243,9 @@ def update_historic_file(draw_no, numbers):
         df = pd.concat([pd.DataFrame([new_row]), df], ignore_index=True)
         df = df.sort_values(by=rcol, ascending=False)
         df.to_excel(HISTORIC_FILE, index=False)
-        print("Updated historic file. Round", draw_no, "->", numbers)
+        print(f"Historic data updated for round {draw_no}.")
     except Exception as e:
-        print("Historic file update error:", e)
+        print(f"Historic sync failed: {e}")
 
 
 def build_history_json():
@@ -246,13 +266,13 @@ def build_history_json():
             history_map[str(rnum)] = nums
         with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
             json.dump(history_map, f, ensure_ascii=False)
-        print("Rebuilt", OUTPUT_JSON)
+        print(f"JSON rebuilt: {OUTPUT_JSON}")
     except Exception as e:
-        print("build_history_json error:", e)
+        print(f"JSON build error: {e}")
 
 
 def get_current_round():
-    """Detect latest round number via simple requests first"""
+    """Detect current round by scraping the main page"""
     from bs4 import BeautifulSoup
     try:
         session = requests.Session()
@@ -261,32 +281,27 @@ def get_current_round():
         r = session.get("https://www.dhlottery.co.kr/common.do?method=main", timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
         el = soup.find("strong", id="lottoDrwNo")
-        if el:
-            return int(el.get_text().strip())
+        if el: return int(el.get_text().strip())
     except: pass
     return None
 
 
 def main():
     if not Path(JSON_FILE).exists():
-        print("Error:", JSON_FILE, "not found.")
         sys.exit(1)
 
     with open(JSON_FILE, "r", encoding="utf-8") as f:
         all_data = json.load(f)
 
     last_round = max([d["r"] for d in all_data]) if all_data else 0
-    print("Last round in data:", last_round)
+    print(f"Current Max Round in Data: {last_round}")
 
-    current_round = get_current_round()
-    if current_round is None:
-        current_round = last_round + 1
-        print("Could not detect current round, target:", current_round)
-    else:
-        print("Latest round on site:", current_round)
+    site_round = get_current_round()
+    current_round = site_round if site_round else last_round + 1
+    print(f"Determined Target Round: {current_round}")
 
     if last_round >= current_round:
-        print("Data is already up to date.")
+        print("Everything is synchronized.")
         return
 
     new_records_base = []
@@ -297,7 +312,7 @@ def main():
             recs, nums = scrape_with_requests_fallback(r)
 
         if not recs or not nums:
-            print("Insufficient data for round", r, "- Exit to retry loop.")
+            print(f"Round {r} data not fully captured - Retrying soon.")
             sys.exit(1)
 
         if nums:
@@ -307,28 +322,23 @@ def main():
         time.sleep(2)
 
     if not new_records_base:
-        print("No new records scraped.")
         sys.exit(1)
 
-    # Geocode
+    # Cache geocode
     cache = {}
     if Path(CACHE_FILE).exists():
         try:
             cdf = pd.read_excel(CACHE_FILE)
             cache = {row["a"]: (row["lat"], row["lng"]) for _, row in cdf.iterrows()}
-        except Exception:
-            pass
+        except: pass
 
     final_new_records = []
     for rec in new_records_base:
         lat, lng = geocode(rec["a"], KAKAO_API_KEY, cache)
-        rec["lat"] = lat
-        rec["lng"] = lng
-        if not lat:
-            print("Warning: geocode failed for", rec["n"])
+        rec["lat"], rec["lng"] = lat, lng
         final_new_records.append(rec)
 
-    # Save JSON + JS
+    # Save
     combined = final_new_records + all_data
     combined.sort(key=lambda x: x["r"], reverse=True)
 
@@ -338,7 +348,6 @@ def main():
     with open(JS_FILE, "w", encoding="utf-8") as f:
         f.write("const lottoData = " + json.dumps(combined, ensure_ascii=False, indent=2) + ";")
 
-    # Merge Excel
     if Path(EXCEL_FILE).exists():
         try:
             df_old = pd.read_excel(EXCEL_FILE)
@@ -347,17 +356,15 @@ def main():
                 columns=df_old.columns[:5],
             )
             pd.concat([ndf, df_old], ignore_index=True).to_excel(EXCEL_FILE, index=False)
-        except Exception as e:
-            print("Excel merge failed:", e)
+        except: pass
 
-    # Update geocode cache
     if cache:
         pd.DataFrame([{"a": k, "lat": v[0], "lng": v[1]} for k, v in cache.items()]).to_excel(
             CACHE_FILE, index=False
         )
 
     build_history_json()
-    print("SUCCESS: Added", len(final_new_records), "records up to round", current_round)
+    print(f"PROCESS COMPLETED. Round {current_round} integrated.")
 
 
 if __name__ == "__main__":
