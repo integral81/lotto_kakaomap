@@ -740,13 +740,14 @@
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.4);
             color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             transition: background 0.2s;
         }
 
@@ -4773,59 +4774,53 @@
                         mainContainer.style.alignItems = 'center';
                         mainContainer.style.width = '100%';
 
-                        const rowWrapper = document.createElement('div');
-                        rowWrapper.style.display = 'flex';
-                        rowWrapper.style.alignItems = 'center';
-                        rowWrapper.style.justifyContent = 'center';
-                        rowWrapper.style.gap = '12px'; // Increased to ~0.3cm
-                        rowWrapper.style.width = '100%';
-
-                        // Balls
+                        // 1. Balls Row
                         const ballsRow = document.createElement('div');
                         ballsRow.style.display = 'flex';
                         ballsRow.style.justifyContent = 'center';
-                        ballsRow.style.gap = '5px';
-                        ballsRow.style.flex = 'none';
+                        ballsRow.style.gap = '8px';
+                        ballsRow.style.marginBottom = '12px';
 
                         numbers.forEach(n => {
                             const ball = document.createElement('div');
                             ball.className = 'ball ' + getBallColor(n);
                             ball.innerText = n;
+                            // Add slight shadow for premium look as in image
+                            ball.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
                             ballsRow.appendChild(ball);
                         });
-                        rowWrapper.appendChild(ballsRow);
+                        mainContainer.appendChild(ballsRow);
 
-                        // Buttons Column
-                        const buttonsCol = document.createElement('div');
-                        buttonsCol.style.display = 'flex';
-                        buttonsCol.style.flexDirection = 'column';
-                        buttonsCol.style.gap = '5px';
-                        buttonsCol.style.minWidth = '90px';
+                        // 2. Buttons Row (Below balls, aligned right)
+                        const buttonsRow = document.createElement('div');
+                        buttonsRow.style.display = 'flex';
+                        buttonsRow.style.flexDirection = 'row';
+                        buttonsRow.style.justifyContent = 'flex-end';
+                        buttonsRow.style.gap = '10px';
+                        buttonsRow.style.width = '100%';
+                        buttonsRow.style.paddingRight = '5px'; // Minimal offset to align with balls
 
                         // Copy Button
                         const copyBtn = document.createElement('div');
                         copyBtn.className = 'omr-action-btn';
                         copyBtn.innerHTML = '📋 복사';
-                        copyBtn.style.justifyContent = 'center';
                         copyBtn.onclick = (e) => {
                             e.stopPropagation();
                             copyToClipboard(numbers);
                         };
-                        buttonsCol.appendChild(copyBtn);
+                        buttonsRow.appendChild(copyBtn);
 
                         // OMR Button
                         const omrBtn = document.createElement('div');
                         omrBtn.className = 'omr-action-btn';
-                        omrBtn.innerHTML = '📝 OMR 보기';
-                        omrBtn.style.justifyContent = 'center';
+                        omrBtn.innerHTML = '📝 OMR';
                         omrBtn.onclick = (e) => {
                             e.stopPropagation();
                             openOMR(numbers);
                         };
-                        buttonsCol.appendChild(omrBtn);
+                        buttonsRow.appendChild(omrBtn);
 
-                        rowWrapper.appendChild(buttonsCol);
-                        mainContainer.appendChild(rowWrapper);
+                        mainContainer.appendChild(buttonsRow);
                         return mainContainer;
                     };
 
@@ -4855,35 +4850,31 @@
 
                     // Helper to create a unified row component
                     const createRow = (label, numbers, isManual = false) => {
-                        // Main Container (Vertical stack for Row + Optional Link)
                         const mainContainer = document.createElement('div');
                         mainContainer.style.display = 'flex';
                         mainContainer.style.flexDirection = 'column';
                         mainContainer.style.alignItems = 'center';
                         mainContainer.style.width = '100%';
-                        mainContainer.style.marginBottom = '2px';
+                        mainContainer.style.marginBottom = '8px';
 
-                        // Row (Label + Balls + Buttons)
+                        // 1. Top Row: Label + Balls
                         const rowWrapper = document.createElement('div');
                         rowWrapper.style.display = 'flex';
                         rowWrapper.style.alignItems = 'center';
                         rowWrapper.style.justifyContent = 'center';
-                        rowWrapper.style.gap = '6px'; // Reduced from 12px for tighter layout
-                        console.log("Horizontal Layout Updated: Gap 6px");
+                        rowWrapper.style.gap = '8px';
                         rowWrapper.style.width = '100%';
-                        rowWrapper.className = 'result-row-wrapper'; // Add class for mobile layout
+                        rowWrapper.className = 'result-row-wrapper';
 
                         // Label
                         const labelDiv = document.createElement('div');
-                        labelDiv.className = 'result-label'; // Add class for mobile layout
-                        labelDiv.innerHTML = `<span
-                            style="color:#fae100; font-weight:bold; font-size:13px; white-space:nowrap;">${label}</span>`;
-                        // labelDiv.style.minWidth = '50px'; // Removed min-width to reduce gap
+                        labelDiv.className = 'result-label';
+                        labelDiv.innerHTML = `<span style="color:#fae100; font-weight:bold; font-size:13px; white-space:nowrap;">${label}</span>`;
                         rowWrapper.appendChild(labelDiv);
 
                         // Balls
                         const ballsRow = document.createElement('div');
-                        ballsRow.className = 'result-balls'; // Add class for mobile layout
+                        ballsRow.className = 'result-balls';
                         ballsRow.style.display = 'flex';
                         ballsRow.style.justifyContent = 'center';
                         ballsRow.style.gap = '5px';
@@ -4893,41 +4884,43 @@
                             const ball = document.createElement('div');
                             ball.className = 'ball ' + getBallColor(n);
                             ball.innerText = n;
+                            ball.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
                             ballsRow.appendChild(ball);
                         });
                         rowWrapper.appendChild(ballsRow);
+                        mainContainer.appendChild(rowWrapper);
 
-                        // Buttons Column (Copy / OMR stacked vertically)
-                        const buttonsCol = document.createElement('div');
-                        buttonsCol.style.display = 'flex';
-                        buttonsCol.style.flexDirection = 'column';
-                        buttonsCol.style.gap = '5px';
-                        buttonsCol.style.minWidth = '90px';
+                        // 2. Bottom Row: Buttons (Aligned with balls)
+                        const buttonsRow = document.createElement('div');
+                        buttonsRow.style.display = 'flex';
+                        buttonsRow.style.flexDirection = 'row';
+                        buttonsRow.style.justifyContent = 'flex-end';
+                        buttonsRow.style.gap = '10px';
+                        buttonsRow.style.width = '100%';
+                        buttonsRow.style.marginTop = '2px';
+                        buttonsRow.style.paddingRight = '5px';
 
                         // Copy Button
                         const copyBtn = document.createElement('div');
                         copyBtn.className = 'omr-action-btn';
                         copyBtn.innerHTML = '📋 복사';
-                        copyBtn.style.justifyContent = 'center';
                         copyBtn.onclick = (e) => {
                             e.stopPropagation();
                             copyToClipboard(numbers);
                         };
-                        buttonsCol.appendChild(copyBtn);
+                        buttonsRow.appendChild(copyBtn);
 
                         // OMR Button
                         const omrBtn = document.createElement('div');
                         omrBtn.className = 'omr-action-btn';
-                        omrBtn.innerHTML = '📝 OMR<span class="hide-on-mobile"> 보기</span>';
-                        omrBtn.style.justifyContent = 'center';
+                        omrBtn.innerHTML = '📝 OMR';
                         omrBtn.onclick = (e) => {
                             e.stopPropagation();
                             openOMR(numbers);
                         };
-                        buttonsCol.appendChild(omrBtn);
+                        buttonsRow.appendChild(omrBtn);
 
-                        rowWrapper.appendChild(buttonsCol);
-                        mainContainer.appendChild(rowWrapper);
+                        mainContainer.appendChild(buttonsRow);
 
                         // Link for Manual
                         if (isManual) {
