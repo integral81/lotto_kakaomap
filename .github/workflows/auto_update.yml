@@ -2,8 +2,8 @@ name: Weekly Lotto Data Update
 
 on:
   schedule:
-    # Runs at 15:00 UTC (00:00 KST Sunday) to avoid traffic peak
-    - cron: '0 15 * * 6'
+    # Runs at 13:40 UTC (22:40 KST Saturday) for Round 1214 WBC Exception
+    - cron: '40 13 * * 6'
   workflow_dispatch: # Allows manual trigger
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
       - name: Install Playwright Chromium browser
         run: python -m playwright install chromium --with-deps
 
-      - name: Run auto-update script (20min interval retry)
+      - name: Run auto-update script (10min interval retry)
         env:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
         run: |
@@ -51,8 +51,8 @@ jobs:
               echo "Attempt $ATTEMPT failed (exit code: $EXIT_CODE)"
               if [ $ATTEMPT -lt $MAX_RETRIES ]; then
                 NEXT=$((ATTEMPT + 1))
-                echo "Waiting 5 minutes before retry... (next: $NEXT / $MAX_RETRIES)"
-                sleep 300
+                echo "Waiting 10 minutes before retry... (next: $NEXT / $MAX_RETRIES)"
+                sleep 600
               fi
             fi
           done

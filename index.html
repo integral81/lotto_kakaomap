@@ -4054,8 +4054,8 @@
                     const row = document.createElement('div');
                     row.className = 'recent-row';
 
-                    // Apply Highlight to the absolute newest round (1212)
-                    if (targetRound === 1212) {
+                    // Apply Highlight to the absolute newest round
+                    if (i === 0) {
                         row.classList.add('latest-round-glow');
                     }
 
