@@ -6510,8 +6510,12 @@
             console.log("Lotto Navi engine inlined.");
             class LottoNaviEngine {
                 constructor(historyData) {
-                    this.history = historyData; // { "회차": [n1, n2, n3, n4, n5, n6, bonus] }
-                    this.latestRound = Math.max(...Object.keys(historyData).map(Number));
+                    // JSON keys are always strings; normalize and find latest round
+                    this.history = {};
+                    for (const key of Object.keys(historyData)) {
+                        this.history[String(key)] = historyData[key];
+                    }
+                    this.latestRound = String(Math.max(...Object.keys(this.history).map(Number)));
                 }
                 calculateAC(numbers) {
                     if (numbers.length !== 6) return 0;
@@ -6539,8 +6543,8 @@
                     for (let i = 1; i <= 45; i++) {
                         let weeks = 0;
                         let found = false;
-                        while (!found && this.latestRound - weeks > 0) {
-                            const roundData = this.history[this.latestRound - weeks];
+                        while (!found && Number(this.latestRound) - weeks > 0) {
+                            const roundData = this.history[String(Number(this.latestRound) - weeks)];
                             if (roundData && roundData.slice(0, 6).map(Number).includes(i)) {
                                 found = true;
                             } else {
@@ -6561,14 +6565,14 @@
                     return selected;
                 }
                 getNeighborNumbers(round = this.latestRound) {
-                    const baseNumbers = this.history[round]?.slice(0, 6) || [];
+                    const baseNumbers = this.history[String(round)]?.slice(0, 6) || [];
                     const neighbors = new Set();
                     baseNumbers.forEach(n => { if (n > 1) neighbors.add(n - 1); if (n < 45) neighbors.add(n + 1); });
                     return Array.from(neighbors).sort((a, b) => a - b);
                 }
                 getRegressionNumbers(cycle) {
-                    const targetRound = this.latestRound - cycle;
-                    return this.history[targetRound]?.slice(0, 6) || [];
+                    const targetRound = Number(this.latestRound) - cycle;
+                    return this.history[String(targetRound)]?.slice(0, 6) || [];
                 }
                 getNumbersByEndingDigit(digit) {
                     const results = [];
@@ -6585,7 +6589,7 @@
                         const frequencyFactor = appearanceCount / totalRounds;
                         let recentFactor = 1.0;
                         for (let i = 0; i < 10; i++) {
-                            const r = this.latestRound - i;
+                            const r = String(Number(this.latestRound) - i);
                             if (this.history[r]?.slice(0, 6).map(Number).includes(num)) { recentFactor += (10 - i) * 0.1; }
                         }
                         this._weightCache[num] = frequencyFactor * recentFactor;
@@ -6593,12 +6597,12 @@
                     return this._weightCache[num] * userPreference;
                 }
                 getAIRecommendedCarryover(round = this.latestRound) {
-                    const baseNumbers = this.history[round]?.slice(0, 6) || [];
+                    const baseNumbers = this.history[String(round)]?.slice(0, 6) || [];
                     const weighted = baseNumbers.map(n => ({ num: n, weight: this.calculateWeight(n) })).sort((a, b) => b.weight - a.weight);
                     return weighted.slice(0, 2).map(x => x.num);
                 }
                 getAIRecommendedNeighbors(round = this.latestRound) {
-                    const baseNumbers = this.history[round]?.slice(0, 6) || [];
+                    const baseNumbers = this.history[String(round)]?.slice(0, 6) || [];
                     const neighbors = this.getNeighborNumbers(round).filter(n => !baseNumbers.includes(n));
                     const weighted = neighbors.map(n => ({ num: n, weight: this.calculateWeight(n) })).sort((a, b) => b.weight - a.weight);
                     return weighted.slice(0, 2).map(x => x.num);
@@ -6682,7 +6686,7 @@
                     const endingCounts = {};
                     for (let i = 0; i < 10; i++) endingCounts[i] = 0;
                     const rounds = Object.keys(this.history).map(Number).sort((a, b) => b - a).slice(0, 10);
-                    rounds.forEach(r => { this.history[r].slice(0, 6).forEach(n => { endingCounts[n % 10]++; }); });
+                    rounds.forEach(r => { this.history[String(r)].slice(0, 6).forEach(n => { endingCounts[n % 10]++; }); });
                     fixedNums.forEach(n => { endingCounts[n % 10] += 5; });
                     const sorted = Object.keys(endingCounts).map(Number).sort((a, b) => {
                         return (endingCounts[b] + this.calculateWeight(b + 10)) - (endingCounts[a] + this.calculateWeight(a + 10));
