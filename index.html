@@ -1849,14 +1849,16 @@
             z-index: 9999;
             display: flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.95);
+            background: #f1f3f4;
+            /* Google light gray */
             border-radius: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: none;
+            /* Flat look like Google */
             padding: 5px 15px;
             width: 320px;
             max-width: 90%;
             transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid transparent;
             backdrop-filter: blur(5px);
         }
 
@@ -1996,20 +1998,15 @@
         }
 
         .kinov-gold-text {
-            font-family: 'Arial Black', Impact, sans-serif;
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: 1.5px;
+            font-family: 'Product Sans', 'Roboto', 'Arial Black', sans-serif;
+            /* Google-like font hierarchy */
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #fceabb 0%, #fccd4d 20%, #f8b500 50%, #fbdf93 60%, #e39000 80%, #fceabb 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            -webkit-text-stroke: 1.5px #4A27AB;
-            /* Deep purple border */
-            filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
+            color: #C5A059;
+            /* Flat, refined KINOV gold tone */
         }
 
         @media (max-width: 768px) {
