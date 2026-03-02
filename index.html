@@ -1982,6 +1982,15 @@
             color: #333;
         }
 
+        /* Mobile Search Logo */
+        .portal-search-logo {
+            display: none;
+            height: 22px;
+            margin-right: 8px;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
         @media (max-width: 768px) {
 
             /* Mobile Specific Search Bar Styles */
@@ -2002,6 +2011,11 @@
             .portal-search-input {
                 padding: 8px 3px;
                 font-size: 13px;
+            }
+
+            .portal-search-logo {
+                display: block;
+                /* Show logo on mobile */
             }
         }
 
@@ -2919,6 +2933,7 @@
         <div id="map">
             <!-- Lotto Portal Search Bar -->
             <div id="portalSearchContainer" class="portal-search-container">
+                <img src="KINOV로고.jpg" alt="KINOV" class="portal-search-logo">
                 <input type="text" id="portalSearchInput" class="portal-search-input"
                     placeholder="지역·판매점 검색 (예: 안산시, 단원구)" onkeyup="handlePortalSearch(event)"
                     onfocus="handlePortalSearchFocus()">
@@ -11533,6 +11548,24 @@
             /* ============================================================ */
         </style>
     </div> <!-- Close #app -->
+
+    <script>
+        // === Mobile Dynamic Placeholder Logic ===
+        function updatePortalPlaceholder() {
+            const searchInput = document.getElementById('portalSearchInput');
+            if (searchInput) {
+                if (window.innerWidth <= 768) {
+                    searchInput.placeholder = "검색(예:전국1위, top3, 스파, 구로구 등)";
+                } else {
+                    searchInput.placeholder = "지역·판매점 검색 (예: 안산시, 단원구)";
+                }
+            }
+        }
+
+        // Run on load and on resize
+        document.addEventListener('DOMContentLoaded', updatePortalPlaceholder);
+        window.addEventListener('resize', updatePortalPlaceholder);
+    </script>
 </body>
 
 </html>
