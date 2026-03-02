@@ -1982,20 +1982,33 @@
             color: #333;
         }
 
-        /* Mobile Search Logo */
-        .portal-search-logo {
+        /* Mobile Top Logo */
+        .mobile-top-logo {
             display: none;
-            height: 22px;
-            margin-right: 8px;
-            flex-shrink: 0;
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            text-align: center;
+            pointer-events: none;
+            /* Let map clicks pass through */
+        }
+
+        .mobile-top-logo img {
+            height: 28px;
             object-fit: contain;
         }
 
         @media (max-width: 768px) {
+            .mobile-top-logo {
+                display: block;
+            }
 
             /* Mobile Specific Search Bar Styles */
             .portal-search-container {
-                top: 8px;
+                top: 48px;
+                /* Moved down to accommodate logo */
                 /* 모바일 위쪽 여백 최소화 */
                 /* 모바일에서 우측 햄버거 메뉴 및 타겟 버튼과 겹치지 않도록 동적 너비 및 여백 할당 */
                 left: 15px;
@@ -2011,11 +2024,6 @@
             .portal-search-input {
                 padding: 8px 3px;
                 font-size: 13px;
-            }
-
-            .portal-search-logo {
-                display: block;
-                /* Show logo on mobile */
             }
         }
 
@@ -2931,9 +2939,12 @@
             </div>
         </div> <!-- end #sidebar -->
         <div id="map">
+            <!-- Mobile Logo Above Search Bar -->
+            <div id="mobileTopLogo" class="mobile-top-logo">
+                <img src="KINOV_logo.jpg" alt="KINOV">
+            </div>
             <!-- Lotto Portal Search Bar -->
             <div id="portalSearchContainer" class="portal-search-container">
-                <img src="KINOV로고.jpg" alt="KINOV" class="portal-search-logo">
                 <input type="text" id="portalSearchInput" class="portal-search-input"
                     placeholder="지역·판매점 검색 (예: 안산시, 단원구)" onkeyup="handlePortalSearch(event)"
                     onfocus="handlePortalSearchFocus()">
