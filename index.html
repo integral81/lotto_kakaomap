@@ -3959,7 +3959,7 @@
                 }
             }
 
-            // 검색창 포커스(터치) 시: 열려있는 팝업 및 토스트 알림 닫기
+            // 검색창 포커스(터치) 시: 열려있는 팝업 및 토스트 알림 닫고 기존 검색어 비우기
             function handlePortalSearchFocus() {
                 if (typeof closeAllToasts === 'function') {
                     closeAllToasts();
@@ -3967,6 +3967,15 @@
                 if (typeof currentInfoWindow !== 'undefined' && currentInfoWindow) {
                     currentInfoWindow.close();
                     document.body.classList.remove('iw-open');
+                }
+
+                // 검색창 초기화 (흔적 지우기) - 단, 값이 있을 때만 필터 재시동
+                const input = document.getElementById('portalSearchInput');
+                if (input && input.value !== "") {
+                    input.value = "";
+                    document.getElementById('portalSearchClear').style.display = 'none';
+                    currentPortalQuery = "";
+                    applyFilters();
                 }
             }
 
