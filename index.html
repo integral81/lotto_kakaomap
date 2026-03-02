@@ -1007,21 +1007,9 @@
         }
 
         .iw-details.collapsed {
-            max-height: 80px;
-            /* Approximately 3 rows */
+            max-height: 26px;
+            /* Exactly 1 row */
             overflow: hidden;
-        }
-
-        /* Fade effect for collapsed state */
-        .iw-details.collapsed::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 40px;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
-            pointer-events: none;
         }
 
         .iw-more-btn {
@@ -4904,6 +4892,8 @@
                         return ICON_TIER4;
                     };
 
+                    const maxVisible = window.innerWidth <= 640 ? 3 : 5;
+
                     const content = `
                     <div class="infowindow">
                         <div class="iw-title">
@@ -4917,12 +4907,12 @@
                         </div>
                         <div style="font-weight:bold; color:red; margin-bottom:5px; font-size:13px;">총 ${shop.totalWins}회 당첨</div>
                         <div class="iw-details-wrapper">
-                            <div class="iw-details ${shop.totalWins > 15 ? 'collapsed' : ''}" id="iw-details-${shop.lat}-${shop.lng}">
+                            <div class="iw-details ${shop.totalWins > maxVisible ? 'collapsed' : ''}" id="iw-details-${shop.lat}-${shop.lng}">
                                 ${roundTagsHtml}
                             </div>
-                            ${shop.totalWins > 15 ? `
-                            <button class="iw-more-btn" onclick="const det = this.parentElement.querySelector('.iw-details'); det.classList.toggle('collapsed'); this.innerText = det.classList.contains('collapsed') ? '총 ${shop.totalWins}회 중 ${shop.totalWins - 15}개 회차 더보기 ▾' : '회차 정보 닫기 ▴'; event.stopPropagation();">
-                                총 ${shop.totalWins}회 중 ${shop.totalWins - 15}개 회차 더보기 ▾
+                            ${shop.totalWins > maxVisible ? `
+                            <button class="iw-more-btn" onclick="const det = this.parentElement.querySelector('.iw-details'); det.classList.toggle('collapsed'); this.innerText = det.classList.contains('collapsed') ? '총 ${shop.totalWins}회 중 ${shop.totalWins - maxVisible}개 회차 더보기 ▾' : '회차 정보 닫기 ▴'; event.stopPropagation();">
+                                총 ${shop.totalWins}회 중 ${shop.totalWins - maxVisible}개 회차 더보기 ▾
                             </button>
                             ` : ''}
                         </div>
