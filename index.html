@@ -8405,9 +8405,9 @@
 
             .navi-ball-btn.battle-ball {
                 width: 72px;
-                /* Increased size for badges */
                 height: 72px;
-                font-size: 28px;
+                font-size: 14px;
+                /* base font-size for the container - number is inside span */
                 border: 3px solid rgba(255, 255, 255, 0.5);
                 background: rgba(255, 255, 255, 0.2);
                 color: white;
@@ -8417,6 +8417,13 @@
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
+            }
+
+            .navi-ball-btn.battle-ball .ball-num {
+                font-size: 28px;
+                font-weight: 900;
+                line-height: 1;
+                display: block;
             }
 
             .navi-ball-btn.battle-ball.selected {
@@ -10214,8 +10221,15 @@
                 .navi-ball-btn.battle-ball {
                     width: 42px !important;
                     height: 42px !important;
-                    font-size: 18px !important;
+                    font-size: 14px !important;
                     border-width: 2px !important;
+                }
+
+                .navi-ball-btn.battle-ball .ball-num {
+                    font-size: 18px !important;
+                    font-weight: 900 !important;
+                    line-height: 1 !important;
+                    display: block !important;
                 }
 
                 /* 다음 단계 버튼 (1.2배 상향 완료 상태) */
