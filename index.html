@@ -2956,7 +2956,7 @@
             <!-- Lotto Portal Search Bar -->
             <div id="portalSearchContainer" class="portal-search-container">
                 <input type="text" id="portalSearchInput" class="portal-search-input"
-                    placeholder="지역·판매점 검색 (예: 안산시, 단원구)" onkeyup="handlePortalSearch(event)"
+                    placeholder="순위/판매점/지역 검색(예:전국1위,top3,스파,구로구 등)" onkeyup="handlePortalSearch(event)"
                     onfocus="handlePortalSearchFocus()">
                 <button id="portalSearchClear" class="portal-search-clear" onclick="clearPortalSearch()"
                     style="display:none;">×</button>
@@ -11578,7 +11578,7 @@
                 if (window.innerWidth <= 768) {
                     searchInput.placeholder = "검색(예:전국1위,top3,스파,구로구 등)"; /* Removed spaces inside placeholder per user request */
                 } else {
-                    searchInput.placeholder = "순위/판매점명/지역명 검색(예: 전국1위, 부산1위, 스파, 구로구 등)";
+                    searchInput.placeholder = "순위/판매점/지역 검색(예:전국1위,top3,스파,구로구 등)";
                 }
             }
         }
