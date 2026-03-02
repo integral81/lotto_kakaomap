@@ -1995,9 +1995,19 @@
             /* Let map clicks pass through */
         }
 
-        .mobile-top-logo img {
-            height: 28px;
-            object-fit: contain;
+        .kinov-gold-text {
+            font-family: 'Arial Black', Impact, sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #fceabb 0%, #fccd4d 20%, #f8b500 50%, #fbdf93 60%, #e39000 80%, #fceabb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
         }
 
         @media (max-width: 768px) {
@@ -2941,7 +2951,7 @@
         <div id="map">
             <!-- Mobile Logo Above Search Bar -->
             <div id="mobileTopLogo" class="mobile-top-logo">
-                <img src="KINOV_logo2.jpg" alt="KINOV">
+                <div class="kinov-gold-text">KINOV</div>
             </div>
             <!-- Lotto Portal Search Bar -->
             <div id="portalSearchContainer" class="portal-search-container">
