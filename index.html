@@ -1904,14 +1904,16 @@
 
             /* Mobile Specific Search Bar Styles */
             .portal-search-container {
-                top: 15px;
+                top: 8px;
+                /* 모바일 위쪽 여백 최소화 */
                 /* 모바일에서 우측 햄버거 메뉴 및 타겟 버튼과 겹치지 않도록 동적 너비 및 여백 할당 */
                 left: 15px;
-                right: 80px;
+                right: 70px;
                 width: auto;
                 transform: none;
                 /* translateX 제거 */
-                padding: 4px 12px;
+                padding: 3px 10px;
+                /* 창의 세로 높이(부피) 최소화 */
                 border-radius: 20px;
             }
 
@@ -4508,6 +4510,14 @@
 
                         infowindow.open(map, marker);
                         currentInfoWindow = infowindow; // Update current
+
+                        // === 모바일 사용성 개선: 팝업(InfoWindow)이 상단 검색창에 가려지지 않도록 지도 뷰 이동 ===
+                        if (window.innerWidth <= 768) {
+                            setTimeout(() => {
+                                // 카카오맵의 시점(View)을 위로(-110px) 이동시켜, 실제 지도 이미지와 마커는 화면 아래로 내려오게 함
+                                map.panBy(0, -110);
+                            }, 50);
+                        }
                     });
 
                     // Listen for native close event (e.g. X button)
