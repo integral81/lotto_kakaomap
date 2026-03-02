@@ -7005,8 +7005,8 @@
                     btn.className = 'navi-ball-btn battle-ball';
                     if (naviSelections.step1.includes(n)) btn.classList.add('selected');
 
-                    // 정교한 추천을 위해 이월 확률 표시 추가
-                    const prob = side === 'left' ? naviEngine.getCarryOverProbability(n) : null;
+                    // 이월수/이웃수 모두 확률 뱃지 표시
+                    const prob = naviEngine.getCarryOverProbability(n);
                     const probHTML = prob ? `<div class="prob-badge">${prob}%</div>` : '';
 
                     // 가장 가중치가 높은 첫 번째 공에 특별 뱃지 부여
