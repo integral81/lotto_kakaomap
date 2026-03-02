@@ -4192,6 +4192,17 @@
                 }
             });
 
+            // [사용자 요청 2] 검색창 영역 클릭/터치 시 팝업창 위로 맨 앞 활성화
+            const portalSearchContainerElem = document.getElementById('portalSearchContainer');
+            if (portalSearchContainerElem) {
+                portalSearchContainerElem.addEventListener('mousedown', function () {
+                    this.style.zIndex = '9999';
+                });
+                portalSearchContainerElem.addEventListener('touchstart', function () {
+                    this.style.zIndex = '9999';
+                }, { passive: true });
+            }
+
 
             function handlePortalSearch(e) {
                 if (e.key === 'Enter') {
@@ -4206,6 +4217,10 @@
 
             // 검색창 포커스(터치) 시: 열려있는 팝업 및 토스트 알림 닫고 기존 검색어 비우기
             function handlePortalSearchFocus() {
+                // [사용자 요청 2] 검색창 포커스 시 검색창을 다시 맨 앞으로 가져옴
+                const searchBox = document.getElementById('portalSearchContainer');
+                if (searchBox) searchBox.style.zIndex = '9999';
+
                 if (typeof closeAllToasts === 'function') {
                     closeAllToasts();
                 }
@@ -4890,6 +4905,10 @@
                         infowindow.open(map, marker);
                         currentInfoWindow = infowindow; // Update current
 
+                        // [사용자 요청 1] 팝업창(InfoWindow)이 검색창에 가려지지 않고 맨 앞으로 오도록 검색창 z-index 낮춤
+                        const searchBox = document.getElementById('portalSearchContainer');
+                        if (searchBox) searchBox.style.zIndex = '10';
+
                         // === 사용성 개선: 팝업(InfoWindow)이 상단 검색창에 가려지지 않도록 지도 뷰 이동 ===
                         setTimeout(() => {
                             if (window.innerWidth <= 768) {
@@ -4905,6 +4924,8 @@
                     // Listen for native close event (e.g. X button)
                     kakao.maps.event.addListener(infowindow, 'close', function () {
                         document.body.classList.remove('iw-open');
+                        const searchBox = document.getElementById('portalSearchContainer');
+                        if (searchBox) searchBox.style.zIndex = '9999';
                     });
 
                     markers.push(marker);
