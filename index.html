@@ -4081,6 +4081,17 @@
                         const matches = [];
                         const uniqueCheck = new Set();
 
+                        // === 특수 검색어(고도화) 추천 추가 ===
+                        const specialKeywords = ["전국 1등", "전국 top 10"];
+                        specialKeywords.forEach(keyword => {
+                            if (keyword.toLowerCase().includes(val.toLowerCase())) {
+                                const regex = new RegExp(`(${val})`, 'gi');
+                                const highlightedText = keyword.replace(regex, '<span class="autocomplete-highlight">$1</span>');
+                                matches.push({ text: keyword, html: highlightedText, type: '명령어' });
+                                uniqueCheck.add(keyword + '명령어');
+                            }
+                        });
+
                         // 단순 텍스트 포함 검색 (가벼운 필터링)
                         for (let i = 0; i < lottoData.length; i++) {
                             const shop = lottoData[i];
@@ -4279,13 +4290,32 @@
                     return fMatch;
                 });
 
-                // ===== 4단계: 포털 검색어 로터리 필터 적용 (옵션) =====
+                // ===== 4단계: 포털 검색어 로터리 필터 적용 (옵션) - 고도화 로직 ===
                 if (currentPortalQuery) {
-                    filtered = filtered.filter(d => {
-                        const name = (d.n || "").toLowerCase();
-                        const addr = (d.a || "").toLowerCase();
-                        return name.includes(currentPortalQuery) || addr.includes(currentPortalQuery);
-                    });
+                    const q = currentPortalQuery.trim().toLowerCase();
+
+                    if (q === "전국 1등" || q === "전국 1위") {
+                        // 동행복권을 제외한 데이터 중 가장 당첨 횟수가 많은 매장 추출
+                        const validShops = filtered.filter(d => !(d.n || "").includes("동행복권"));
+                        if (validShops.length > 0) {
+                            const maxWin = Math.max(...validShops.map(d => d.totalWins || 0));
+                            filtered = validShops.filter(d => (d.totalWins || 0) === maxWin);
+                        } else {
+                            filtered = [];
+                        }
+                    } else if (q === "전국 top 10" || q === "전국 top10" || q === "전국 톱10") {
+                        // 동행복권을 제외한 데이터 중 랭킹 탑 10 추출
+                        const validShops = filtered.filter(d => !(d.n || "").includes("동행복권"));
+                        validShops.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0));
+                        filtered = validShops.slice(0, 10);
+                    } else {
+                        // 일반 검색 로직
+                        filtered = filtered.filter(d => {
+                            const name = (d.n || "").toLowerCase();
+                            const addr = (d.a || "").toLowerCase();
+                            return name.includes(q) || addr.includes(q);
+                        });
+                    }
                 }
 
                 document.getElementById('filteredCount').innerText = filtered.length.toLocaleString();
