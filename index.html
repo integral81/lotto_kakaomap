@@ -1987,7 +1987,8 @@
             display: none;
             position: absolute;
             top: 12px;
-            left: 50%;
+            left: calc(50% - 27.5px);
+            /* Perfectly center over the search bar (15px left, 70px right) */
             transform: translateX(-50%);
             z-index: 9999;
             text-align: center;
@@ -2007,6 +2008,8 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
+            -webkit-text-stroke: 1.5px #4A27AB;
+            /* Deep purple border */
             filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
         }
 
@@ -11576,7 +11579,7 @@
             const searchInput = document.getElementById('portalSearchInput');
             if (searchInput) {
                 if (window.innerWidth <= 768) {
-                    searchInput.placeholder = "검색(예:전국1위, top3, 스파, 구로구 등)";
+                    searchInput.placeholder = "검색(예:전국1위,top3,스파,구로구 등)"; /* Removed spaces inside placeholder per user request */
                 } else {
                     searchInput.placeholder = "지역·판매점 검색 (예: 안산시, 단원구)";
                 }
