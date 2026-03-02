@@ -2703,6 +2703,7 @@
                     <label class="checkbox-item"><input type="checkbox" id="methodAuto" checked> 자동</label>
                     <label class="checkbox-item"><input type="checkbox" id="methodManual" checked> 수동</label>
                     <label class="checkbox-item"><input type="checkbox" id="methodSemi" checked> 반자동</label>
+                    <label class="checkbox-item"><input type="checkbox" id="methodSite" checked> 🌐 사이트</label>
                 </div>
             </div>
             <div class="section">
@@ -3829,6 +3830,7 @@
                 const auto = document.getElementById('methodAuto').checked;
                 const manual = document.getElementById('methodManual').checked;
                 const semi = document.getElementById('methodSemi').checked;
+                const site = document.getElementById('methodSite') ? document.getElementById('methodSite').checked : true;
 
                 // Frequency Filters
                 const f10 = document.getElementById('freq10').checked;
@@ -3855,6 +3857,9 @@
                     // 만약 당첨 방식 정보가 없으면 필터 체크 여부와 상관없이 보여줌 (요약 데이터 대응)
                     if (d.m === undefined || d.m === "정보없음") {
                         mMatch = true;
+                    } else if (d.isOnline || d.m === '사이트') {
+                        // 온라인(사이트) 당첨 - 사이트 체크박스로 필터
+                        if (site) mMatch = true;
                     } else {
                         if (auto && d.m.includes('자동')) mMatch = true;
                         if (manual && d.m.includes('수동')) mMatch = true;
