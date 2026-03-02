@@ -6607,6 +6607,23 @@
                     const weighted = neighbors.map(n => ({ num: n, weight: this.calculateWeight(n) })).sort((a, b) => b.weight - a.weight);
                     return weighted.slice(0, 2).map(x => x.num);
                 }
+                getCarryOverProbability(n) {
+                    const num = Number(n);
+                    let appearanceCount = 0;
+                    let carryOverCount = 0;
+                    const rounds = Object.keys(this.history).map(Number).sort((a, b) => a - b);
+                    for (let i = 0; i < rounds.length; i++) {
+                        const curr = (this.history[String(rounds[i])] || []).slice(0, 6).map(Number);
+                        if (curr.includes(num)) {
+                            appearanceCount++;
+                            if (i > 0) {
+                                const prev = (this.history[String(rounds[i - 1])] || []).slice(0, 6).map(Number);
+                                if (prev.includes(num)) carryOverCount++;
+                            }
+                        }
+                    }
+                    return appearanceCount > 0 ? (carryOverCount / appearanceCount * 100).toFixed(1) : "0.0";
+                }
                 generateRecommendedNumbers(filters = {}) {
                     const fixedNumbers = (filters.fixedNumbers || []).map(Number);
                     const fixedCount = fixedNumbers.length;
