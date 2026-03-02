@@ -3842,9 +3842,14 @@
                     // 폐업점 제외 체크 시 폐업 데이터 숨김
                     if (excludeClosed && d.closed) return false;
 
-                    // 10회 이상 당첨된 '명당'은 회차 필터와 관계없이 항상 통과 (사용자 요청)
+                    // 명당(10회 이상) 상시 노출:
+                    // - 회차 범위가 10회 이상인 넓은 범위일 때만 명당 예외 적용
+                    // - minR === maxR(단일 회차) 또는 좁은 범위(≤10회)일 때는 정확한 회차 필터 우선
                     const isHighWinShop = (d.totalWins >= 10);
-                    const rMatch = (d.r === undefined) || (d.r >= minR && d.r <= maxR) || isHighWinShop;
+                    const isNarrowRange = (maxR - minR) <= 10;
+                    const rMatch = (d.r === undefined) ||
+                        (d.r >= minR && d.r <= maxR) ||
+                        (!isNarrowRange && isHighWinShop);
 
                     let mMatch = false;
                     // 만약 당첨 방식 정보가 없으면 필터 체크 여부와 상관없이 보여줌 (요약 데이터 대응)
