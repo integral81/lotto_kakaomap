@@ -4082,7 +4082,11 @@
                         const uniqueCheck = new Set();
 
                         // === 특수 검색어(고도화) 추천 추가 ===
-                        const specialKeywords = ["전국 1등", "전국 top 10"];
+                        const specialKeywords = [
+                            "우리동네 1등", "전국 1등", "전국 top 10",
+                            "서울 1등", "경기 1등", "인천 1등", "부산 1등", "대구 1등",
+                            "광주 1등", "대전 1등", "제주 1등", "강원 1등"
+                        ];
                         specialKeywords.forEach(keyword => {
                             if (keyword.toLowerCase().includes(val.toLowerCase())) {
                                 const regex = new RegExp(`(${val})`, 'gi');
@@ -4091,6 +4095,13 @@
                                 uniqueCheck.add(keyword + '명령어');
                             }
                         });
+
+                        // "1등" 혹은 "top 10" 이라는 글자가 포함되었을 경우, 사용자 입력 그대로를 명령어로 제안
+                        if ((val.includes(" 1등") || val.includes(" 1위") || val.includes(" top 10") || val.includes(" top10") || val.includes(" 톱10")) &&
+                            !specialKeywords.includes(val)) {
+                            matches.push({ text: val, html: val, type: '지역랭킹' });
+                            uniqueCheck.add(val + '지역랭킹');
+                        }
 
                         // 단순 텍스트 포함 검색 (가벼운 필터링)
                         for (let i = 0; i < lottoData.length; i++) {
@@ -4206,19 +4217,54 @@
             function executePortalSearch() {
                 const input = document.getElementById('portalSearchInput');
                 const val = input.value.trim();
-                currentPortalQuery = val.toLowerCase();
 
                 if (val !== "") {
                     saveRecentSearch(val);
                 }
+
+                // "우리동네 1등" 등 GPS 기반 스마트 검색 처리
+                if (val.toLowerCase() === "우리동네 1등" || val.toLowerCase() === "우리동네 1위" || val.toLowerCase() === "우리동네 top 10") {
+                    const geocoder = new kakao.maps.services.Geocoder();
+                    const center = map.getCenter();
+                    const isTop10 = val.toLowerCase().includes("top");
+
+                    geocoder.coord2RegionCode(center.getLng(), center.getLat(), function (result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            let guName = "";
+                            for (let i = 0; i < result.length; i++) {
+                                // 예: 구 단위(법정동) 이름 추출
+                                if (result[i].region_type === 'B') {
+                                    guName = result[i].region_2depth_name;
+                                    break;
+                                }
+                            }
+                            if (!guName && result.length > 0) guName = result[0].region_2depth_name;
+
+                            if (guName) {
+                                // "영등포구 1등" 으로 치환
+                                const newQuery = guName + (isTop10 ? " top 10" : " 1등");
+                                currentPortalQuery = newQuery.toLowerCase();
+                                input.value = newQuery;
+                                if (typeof hideAutocomplete === 'function') hideAutocomplete();
+                                applyFilters();
+                                input.blur();
+                            } else {
+                                alert("현재 위치의 행정구역을 파악하지 못했습니다.");
+                            }
+                        }
+                    });
+                    if (typeof hideAutocomplete === 'function') hideAutocomplete();
+                    return; // 비동기 로직이 돌기 때문에 여기서 early return 합니다.
+                }
+
+                currentPortalQuery = val.toLowerCase();
 
                 // 검색 실행 시 드롭다운 닫기
                 if (typeof hideAutocomplete === 'function') {
                     hideAutocomplete();
                 }
 
-                // 검색어가 입력되면, 기존 필터를 최대한 관대하게 (전체 회차, 전체 당첨방식) 열어줄지 여부는 선택사항
-                // 여기서는 현재 적용된 회차/방식 필터 + 검색어 AND 조건으로 동작하게 합니다.
+                // 일반 검색어일 경우 즉시 필터 적용
                 applyFilters();
 
                 // 검색 후 키보드 숨기기 (모바일 편의성)
@@ -4306,6 +4352,33 @@
                     } else if (q === "전국 top 10" || q === "전국 top10" || q === "전국 톱10") {
                         // 동행복권을 제외한 데이터 중 랭킹 탑 10 추출
                         const validShops = filtered.filter(d => !(d.n || "").includes("동행복권"));
+                        validShops.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0));
+                        filtered = validShops.slice(0, 10);
+                    } else if (q.endsWith("1등") || q.endsWith("1위")) {
+                        // "서울 1등", "부산 1등", "영등포구 1등" 지원 로직
+                        const region = q.replace(/(1등|1위)/g, '').trim(); // "서울"
+
+                        const validShops = filtered.filter(d => {
+                            if ((d.n || "").includes("동행복권")) return false;
+                            const addr = (d.a || "").toLowerCase();
+                            return addr.includes(region);
+                        });
+
+                        if (validShops.length > 0) {
+                            const maxWin = Math.max(...validShops.map(d => d.totalWins || 0));
+                            filtered = validShops.filter(d => (d.totalWins || 0) === maxWin);
+                        } else {
+                            filtered = [];
+                        }
+                    } else if (q.endsWith("top 10") || q.endsWith("top10") || q.endsWith("톱10")) {
+                        // "서울 top 10", "제주도 top 10" 지원 로직
+                        const region = q.replace(/(top 10|top10|톱10)/g, '').trim();
+
+                        const validShops = filtered.filter(d => {
+                            if ((d.n || "").includes("동행복권")) return false;
+                            const addr = (d.a || "").toLowerCase();
+                            return addr.includes(region);
+                        });
                         validShops.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0));
                         filtered = validShops.slice(0, 10);
                     } else {
