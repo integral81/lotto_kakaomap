@@ -4905,9 +4905,9 @@
                         infowindow.open(map, marker);
                         currentInfoWindow = infowindow; // Update current
 
-                        // [사용자 요청 1] 팝업창(InfoWindow)이 검색창에 가려지지 않고 맨 앞으로 오도록 검색창 z-index 낮춤
+                        // [사용자 요청 1] 팝업창(InfoWindow)이 검색창에 가려지지 않고 맨 앞으로 오도록 검색창 z-index 엄청 낮춤(0)
                         const searchBox = document.getElementById('portalSearchContainer');
-                        if (searchBox) searchBox.style.zIndex = '10';
+                        if (searchBox) searchBox.style.zIndex = '0';
 
                         // === 사용성 개선: 팝업(InfoWindow)이 상단 검색창에 가려지지 않도록 지도 뷰 이동 ===
                         setTimeout(() => {
@@ -4953,6 +4953,12 @@
                             // 만약 결과가 1개여서 줌이 너무 확대되면 적절히 축소
                             if (markers.length === 1 || map.getLevel() < 3) {
                                 map.setLevel(4);
+                            }
+                            // 만약 결과가 1개면 바로 팝업(InfoWindow) 열기
+                            if (markers.length === 1) {
+                                setTimeout(() => {
+                                    kakao.maps.event.trigger(markers[0], 'click');
+                                }, 300);
                             }
                         }, 100);
                     }
