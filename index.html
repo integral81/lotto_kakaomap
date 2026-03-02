@@ -1818,7 +1818,107 @@
             white-space: nowrap;
             /* Prevent text wrapping */
             flex-shrink: 0;
-            /* Don't let the button shrink below its text content */
+        }
+
+        /* Portal Search Bar (Global & PC) */
+        .portal-search-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 5px 15px;
+            width: 320px;
+            max-width: 90%;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(5px);
+        }
+
+        .portal-search-container:focus-within {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            background: white;
+        }
+
+        .portal-search-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px 5px;
+            font-size: 14px;
+            color: #333;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .portal-search-input::placeholder {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .portal-search-btn {
+            background: transparent;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .portal-search-btn:hover {
+            transform: scale(1.1);
+            color: #5a67d8;
+        }
+
+        .portal-search-clear {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            color: #666;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 14px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .portal-search-clear:hover {
+            background: rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+
+            /* Mobile Specific Search Bar Styles */
+            .portal-search-container {
+                top: 15px;
+                /* 모바일은 좌측 메뉴버튼(hamburger)과 우측 빠른버튼 공간 등을 고려하여 정렬 및 넓이 조정 */
+                width: calc(100% - 110px);
+                left: 60px;
+                /* hamburger 버튼(좌상단)을 피하기 위해 left 고정 위치 */
+                transform: none;
+                /* translateX 제거 */
+                padding: 4px 12px;
+                border-radius: 20px;
+            }
+
+            .portal-search-input {
+                padding: 8px 3px;
+                font-size: 13px;
+            }
         }
 
         /* Input Container for Dream/Zodiac */
@@ -2733,6 +2833,21 @@
             </div>
         </div> <!-- end #sidebar -->
         <div id="map">
+            <!-- Lotto Portal Search Bar -->
+            <div id="portalSearchContainer" class="portal-search-container">
+                <input type="text" id="portalSearchInput" class="portal-search-input"
+                    placeholder="지역·판매점 검색 (예: 안산시, 단원구)" onkeyup="handlePortalSearch(event)">
+                <button id="portalSearchClear" class="portal-search-clear" onclick="clearPortalSearch()"
+                    style="display:none;">×</button>
+                <button class="portal-search-btn" onclick="executePortalSearch()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+
             <!-- Hamburger Menu Button -->
             <div id="menuBtn" class="floating-btn menu-btn" onclick="toggleNav()" title="메뉴 열기">
                 <div class="hamburger-icon">
@@ -3831,6 +3946,39 @@
                 return true;
             }
 
+            // === 로또포털검색 기능 (Search Bar) ===
+            let currentPortalQuery = "";
+
+            function handlePortalSearch(e) {
+                if (e.key === 'Enter') {
+                    executePortalSearch();
+                } else {
+                    const val = document.getElementById('portalSearchInput').value.trim();
+                    document.getElementById('portalSearchClear').style.display = val ? 'flex' : 'none';
+                }
+            }
+
+            function clearPortalSearch() {
+                const input = document.getElementById('portalSearchInput');
+                input.value = "";
+                document.getElementById('portalSearchClear').style.display = 'none';
+                currentPortalQuery = "";
+                applyFilters();
+            }
+
+            function executePortalSearch() {
+                const input = document.getElementById('portalSearchInput');
+                currentPortalQuery = input.value.trim().toLowerCase();
+
+                // 검색어가 입력되면, 기존 필터를 최대한 관대하게 (전체 회차, 전체 당첨방식) 열어줄지 여부는 선택사항
+                // 여기서는 현재 적용된 회차/방식 필터 + 검색어 AND 조건으로 동작하게 합니다.
+                applyFilters();
+
+                // 검색 후 키보드 숨기기 (모바일 편의성)
+                input.blur();
+            }
+            // =====================================
+
             function applyFilters() {
                 const minR = parseInt(document.getElementById('minRound').value) || 0;
                 const maxR = parseInt(document.getElementById('maxRound').value) || 9999;
@@ -3884,7 +4032,7 @@
 
 
                 // ===== 3단계: Frequency 필터 적용 (pre-calculated totalWins 기준) =====
-                const filtered = roundFiltered.filter(d => {
+                let filtered = roundFiltered.filter(d => {
                     let fMatch = false;
                     const w = d.totalWins || 0;
                     if (f10 && w >= 10) fMatch = true;
@@ -3894,6 +4042,15 @@
 
                     return fMatch;
                 });
+
+                // ===== 4단계: 포털 검색어 로터리 필터 적용 (옵션) =====
+                if (currentPortalQuery) {
+                    filtered = filtered.filter(d => {
+                        const name = (d.n || "").toLowerCase();
+                        const addr = (d.a || "").toLowerCase();
+                        return name.includes(currentPortalQuery) || addr.includes(currentPortalQuery);
+                    });
+                }
 
                 document.getElementById('filteredCount').innerText = filtered.length.toLocaleString();
                 updateMarkers(filtered);
@@ -4340,6 +4497,32 @@
                     markers.push(marker);
                 });
                 clusterer.addMarkers(markers);
+
+                // === 로또포털검색 기능: 검색 결과가 있고, 전역 검색어가 활성화 상태일 때 지도 뷰 자동 이동 ===
+                if (currentPortalQuery && markers.length > 0) {
+                    const bounds = new kakao.maps.LatLngBounds();
+                    let hasValidPosition = false;
+
+                    markers.forEach(m => {
+                        const pos = m.getPosition();
+                        // 0,0 좌표(데이터상 0이거나 초기값 오류 등)는 bounds 영역에서 제외
+                        if (pos.getLat() !== 0 && pos.getLng() !== 0) {
+                            bounds.extend(pos);
+                            hasValidPosition = true;
+                        }
+                    });
+
+                    if (hasValidPosition) {
+                        // 약간의 딜레이를 주어 부드럽게 이동
+                        setTimeout(() => {
+                            map.setBounds(bounds);
+                            // 만약 결과가 1개여서 줌이 너무 확대되면 적절히 축소
+                            if (markers.length === 1 || map.getLevel() < 3) {
+                                map.setLevel(4);
+                            }
+                        }, 100);
+                    }
+                }
             }
             function requestMyLocation(isRetry = false) {
                 console.log(`[GPS] requestMyLocation called (isRetry: ${isRetry})`);
