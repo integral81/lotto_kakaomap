@@ -4096,9 +4096,11 @@
                             }
                         });
 
+                        const nVal = val.toLowerCase().replace(/\s+/g, '');
+
                         // "1등" 혹은 "top 10" 이라는 글자가 포함되었을 경우, 사용자 입력 그대로를 명령어로 제안
-                        if ((val.includes(" 1등") || val.includes(" 1위") || val.includes(" top 10") || val.includes(" top10") || val.includes(" 톱10")) &&
-                            !specialKeywords.includes(val)) {
+                        if ((nVal.includes("1등") || nVal.includes("1위") || nVal.includes("top10") || nVal.includes("톱10")) &&
+                            !specialKeywords.some(k => k.replace(/\s+/g, '') === nVal)) {
                             matches.push({ text: val, html: val, type: '지역랭킹' });
                             uniqueCheck.add(val + '지역랭킹');
                         }
@@ -4222,11 +4224,13 @@
                     saveRecentSearch(val);
                 }
 
-                // "우리동네 1등" 등 GPS 기반 스마트 검색 처리
-                if (val.toLowerCase() === "우리동네 1등" || val.toLowerCase() === "우리동네 1위" || val.toLowerCase() === "우리동네 top 10") {
+                const normalizedVal = val.toLowerCase().replace(/\s+/g, '');
+
+                // "우리동네 1등" 등 GPS 기반 스마트 검색 처리 (띄어쓰기 무시)
+                if (normalizedVal === "우리동네1등" || normalizedVal === "우리동네1위" || normalizedVal.includes("우리동네top")) {
                     const geocoder = new kakao.maps.services.Geocoder();
                     const center = map.getCenter();
-                    const isTop10 = val.toLowerCase().includes("top");
+                    const isTop10 = normalizedVal.includes("top");
 
                     geocoder.coord2RegionCode(center.getLng(), center.getLat(), function (result, status) {
                         if (status === kakao.maps.services.Status.OK) {
@@ -4338,9 +4342,10 @@
 
                 // ===== 4단계: 포털 검색어 로터리 필터 적용 (옵션) - 고도화 로직 ===
                 if (currentPortalQuery) {
-                    const q = currentPortalQuery.trim().toLowerCase();
+                    const qRaw = currentPortalQuery.trim().toLowerCase();
+                    const q = qRaw.replace(/\s+/g, ''); // 띄어쓰기 무시 식별용
 
-                    if (q === "전국 1등" || q === "전국 1위") {
+                    if (q === "전국1등" || q === "전국1위") {
                         // 동행복권을 제외한 데이터 중 가장 당첨 횟수가 많은 매장 추출
                         const validShops = filtered.filter(d => !(d.n || "").includes("동행복권"));
                         if (validShops.length > 0) {
@@ -4349,18 +4354,18 @@
                         } else {
                             filtered = [];
                         }
-                    } else if (q === "전국 top 10" || q === "전국 top10" || q === "전국 톱10") {
+                    } else if (q === "전국top10" || q === "전국톱10") {
                         // 동행복권을 제외한 데이터 중 랭킹 탑 10 추출
                         const validShops = filtered.filter(d => !(d.n || "").includes("동행복권"));
                         validShops.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0));
                         filtered = validShops.slice(0, 10);
                     } else if (q.endsWith("1등") || q.endsWith("1위")) {
-                        // "서울 1등", "부산 1등", "영등포구 1등" 지원 로직
-                        const region = q.replace(/(1등|1위)/g, '').trim(); // "서울"
+                        // "서울1등", "부산1등", "영등포구1등" 지원 로직
+                        const region = q.replace(/(1등|1위)/g, ''); // "서울"
 
                         const validShops = filtered.filter(d => {
                             if ((d.n || "").includes("동행복권")) return false;
-                            const addr = (d.a || "").toLowerCase();
+                            const addr = (d.a || "").toLowerCase().replace(/\s+/g, '');
                             return addr.includes(region);
                         });
 
@@ -4370,23 +4375,23 @@
                         } else {
                             filtered = [];
                         }
-                    } else if (q.endsWith("top 10") || q.endsWith("top10") || q.endsWith("톱10")) {
-                        // "서울 top 10", "제주도 top 10" 지원 로직
-                        const region = q.replace(/(top 10|top10|톱10)/g, '').trim();
+                    } else if (q.endsWith("top10") || q.endsWith("톱10")) {
+                        // "서울top10", "제주도top10" 지원 로직
+                        const region = q.replace(/(top10|톱10)/g, '');
 
                         const validShops = filtered.filter(d => {
                             if ((d.n || "").includes("동행복권")) return false;
-                            const addr = (d.a || "").toLowerCase();
+                            const addr = (d.a || "").toLowerCase().replace(/\s+/g, '');
                             return addr.includes(region);
                         });
                         validShops.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0));
                         filtered = validShops.slice(0, 10);
                     } else {
-                        // 일반 검색 로직
+                        // 일반 검색 로직 (원래 검색어 유지)
                         filtered = filtered.filter(d => {
                             const name = (d.n || "").toLowerCase();
                             const addr = (d.a || "").toLowerCase();
-                            return name.includes(q) || addr.includes(q);
+                            return name.includes(qRaw) || addr.includes(qRaw);
                         });
                     }
                 }
