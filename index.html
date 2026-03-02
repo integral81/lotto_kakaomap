@@ -4938,6 +4938,7 @@
                     const infowindow = new kakao.maps.InfoWindow({
                         content: content,
                         removable: true,
+                        disableAutoPan: true, // 카카오맵의 자동 점프 방지 (직접 오프셋 제어)
                         zIndex: 10000 // Ensure popup is on top of everything (User Request)
                     });
 
@@ -4959,33 +4960,29 @@
                         infowindow.open(map, marker);
                         currentInfoWindow = infowindow; // Update current
 
-                        // [사용자 요청 1] 팝업창(InfoWindow)이 검색창에 가려지지 않고 맨 앞으로 오도록 검색창 z-index 1로 변경
+                        // [사용자 요청 옵션 3 해결 방안]: 팝업창이 검색창 밑에서 시작되도록 마커 중심점 조작
+                        // (강제로 검색창을 투명하게 만들거나 뒤로 보내는 z-index 조작 롤백 -> UI 버그 원천 차단)
                         const searchBox = document.getElementById('portalSearchContainer');
-                        if (searchBox) searchBox.style.zIndex = '2'; // 0으로 하면 지도에 완전히 가려지므로 2로 수정
-
-                        // KINOV 맨 위 로고도 같이 뒤로 숨김
+                        if (searchBox) searchBox.style.zIndex = '9999';
                         const topLogo = document.getElementById('portalTopLogo');
-                        if (topLogo) topLogo.style.zIndex = '2';
+                        if (topLogo) topLogo.style.zIndex = '9999';
 
-                        // === 사용성 개선: 팝업(InfoWindow)이 상단 검색창에 가려지지 않도록 지도 뷰 이동 ===
-                        setTimeout(() => {
-                            if (window.innerWidth <= 768) {
-                                // 모바일: 팝업창을 현재보다 30px 더 아래로 내리기 위한 수치 적용 (-85px)
-                                map.panBy(0, -85);
-                            } else {
-                                // PC: 상단 검색창 높이(대략 70px)를 회피하고 추가로 30px 간격을 둠 (-100 ~ -110px)
-                                map.panBy(0, -110);
-                            }
-                        }, 150); // 카카오맵 자체 infowindow 최적화 중심 이동(AutoPan) 동작 후 실행되도록 딜레이 증가
+                        // === 마커 위치를 기준으로 화면 하단으로 내리기 (중심을 위로 이동) ===
+                        // getProjection()을 이용해 실제 픽셀 단위로 정확하게 Y축 오프셋을 계산하여 부드럽게 PanTo 이동
+                        const proj = map.getProjection();
+                        if (proj) {
+                            const markerPoint = proj.pointFromCoords(marker.getPosition());
+                            // 모바일은 180px, PC는 250px 만큼 지도 중심을 위로 당겨서, 마커(와 팝업)가 검색창 밑에 여유있게 뜨도록 함
+                            const offsetY = window.innerWidth <= 768 ? 180 : 250;
+                            markerPoint.y -= offsetY;
+                            const newCenter = proj.coordsFromPoint(markerPoint);
+                            map.panTo(newCenter);
+                        }
                     });
 
                     // Listen for native close event (e.g. X button)
                     kakao.maps.event.addListener(infowindow, 'close', function () {
                         document.body.classList.remove('iw-open');
-                        const searchBox = document.getElementById('portalSearchContainer');
-                        if (searchBox) searchBox.style.zIndex = '9999';
-                        const topLogo = document.getElementById('portalTopLogo');
-                        if (topLogo) topLogo.style.zIndex = '9999';
                     });
 
                     markers.push(marker);
