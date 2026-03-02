@@ -4222,6 +4222,20 @@
 
                 if (val !== "") {
                     saveRecentSearch(val);
+
+                    // === 실시간 검색어 분석을 위한 트래킹 코드 병합 (GA4 & Clarity) ===
+                    try {
+                        // 1. 구글 애널리틱스 (GA4) - 표준 검색(Search) 이벤트 발송
+                        if (typeof gtag === 'function') {
+                            gtag('event', 'search', { search_term: val });
+                        }
+                        // 2. 마이크로소프트 클래리티 - Custom tag 설정 (대시보드 필터용)
+                        if (typeof clarity === 'function') {
+                            clarity("set", "search_keyword", val);
+                        }
+                    } catch (e) {
+                        console.error("추적 코드 전송 실패:", e);
+                    }
                 }
 
                 const normalizedVal = val.toLowerCase().replace(/\s+/g, '');
