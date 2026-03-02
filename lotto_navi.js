@@ -6,8 +6,12 @@ console.log("Lotto Navi engine initializing...");
 
 class LottoNaviEngine {
     constructor(historyData) {
-        this.history = historyData; // { "회차": [n1, n2, n3, n4, n5, n6, bonus] }
-        this.latestRound = Math.max(...Object.keys(historyData).map(Number));
+        // Normalize keys to String to ensure consistent access (JSON keys are always strings)
+        this.history = {};
+        for (const key of Object.keys(historyData)) {
+            this.history[String(key)] = historyData[key];
+        }
+        this.latestRound = String(Math.max(...Object.keys(this.history).map(Number)));
     }
 
     /**
