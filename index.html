@@ -2836,7 +2836,8 @@
             <!-- Lotto Portal Search Bar -->
             <div id="portalSearchContainer" class="portal-search-container">
                 <input type="text" id="portalSearchInput" class="portal-search-input"
-                    placeholder="지역·판매점 검색 (예: 안산시, 단원구)" onkeyup="handlePortalSearch(event)">
+                    placeholder="지역·판매점 검색 (예: 안산시, 단원구)" onkeyup="handlePortalSearch(event)"
+                    onfocus="handlePortalSearchFocus()">
                 <button id="portalSearchClear" class="portal-search-clear" onclick="clearPortalSearch()"
                     style="display:none;">×</button>
                 <button class="portal-search-btn" onclick="executePortalSearch()">
@@ -3955,6 +3956,17 @@
                 } else {
                     const val = document.getElementById('portalSearchInput').value.trim();
                     document.getElementById('portalSearchClear').style.display = val ? 'flex' : 'none';
+                }
+            }
+
+            // 검색창 포커스(터치) 시: 열려있는 팝업 및 토스트 알림 닫기
+            function handlePortalSearchFocus() {
+                if (typeof closeAllToasts === 'function') {
+                    closeAllToasts();
+                }
+                if (typeof currentInfoWindow !== 'undefined' && currentInfoWindow) {
+                    currentInfoWindow.close();
+                    document.body.classList.remove('iw-open');
                 }
             }
 
