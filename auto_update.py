@@ -189,9 +189,20 @@ def main():
             cdf = pd.read_excel(CACHE_FILE)
             cache = {row["a"]: (row["lat"], row["lng"]) for _, row in cdf.iterrows()}
         
+        # 동행복권 좌표 상수 (서울 소공로 70)
+        INTERNET_LOTTERY_LAT = 37.56358
+        INTERNET_LOTTERY_LNG = 126.97923
+
         for rec in recs:
-            lat, lng = geocode(rec["a"], KAKAO_API_KEY, cache)
-            rec["lat"], rec["lng"] = lat, lng
+            # 인터넷 복권판매사이트는 물리적 주소가 없으므로 동행복권 본사 좌표 고정 사용
+            if '인터넷 복권판매사이트' in rec.get('n', ''):
+                rec['lat'] = INTERNET_LOTTERY_LAT
+                rec['lng'] = INTERNET_LOTTERY_LNG
+                rec['isOnline'] = True
+                rec['verified'] = True
+            else:
+                lat, lng = geocode(rec["a"], KAKAO_API_KEY, cache)
+                rec["lat"], rec["lng"] = lat, lng
         
         all_data = recs + all_data
         all_data.sort(key=lambda x: x["r"], reverse=True)
