@@ -1842,7 +1842,8 @@
         /* Portal Search Bar (Global & PC) */
         .portal-search-container {
             position: absolute;
-            top: 20px;
+            top: 56px;
+            /* Moved down to accommodate PC logo */
             left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
@@ -1982,13 +1983,11 @@
             color: #333;
         }
 
-        /* Mobile Top Logo */
-        .mobile-top-logo {
-            display: none;
+        /* Top PC and Mobile Logo */
+        .portal-top-logo {
             position: absolute;
-            top: 12px;
-            left: calc(50% - 27.5px);
-            /* Perfectly center over the search bar (15px left, 70px right) */
+            top: 20px;
+            left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
             text-align: center;
@@ -2014,8 +2013,9 @@
         }
 
         @media (max-width: 768px) {
-            .mobile-top-logo {
-                display: block;
+            .portal-top-logo {
+                left: calc(50% - 27.5px);
+                /* Perfectly center over the mobile search bar */
             }
 
             /* Mobile Specific Search Bar Styles */
@@ -2952,8 +2952,8 @@
             </div>
         </div> <!-- end #sidebar -->
         <div id="map">
-            <!-- Mobile Logo Above Search Bar -->
-            <div id="mobileTopLogo" class="mobile-top-logo">
+            <!-- Top Logo Above Search Bar -->
+            <div id="portalTopLogo" class="portal-top-logo">
                 <div class="kinov-gold-text">KINOV</div>
             </div>
             <!-- Lotto Portal Search Bar -->
@@ -11581,7 +11581,7 @@
                 if (window.innerWidth <= 768) {
                     searchInput.placeholder = "검색(예:전국1위,top3,스파,구로구 등)"; /* Removed spaces inside placeholder per user request */
                 } else {
-                    searchInput.placeholder = "지역·판매점 검색 (예: 안산시, 단원구)";
+                    searchInput.placeholder = "순위/판매점명/지역명 검색(예: 전국1위, 부산1위, 스파, 구로구 등)";
                 }
             }
         }
