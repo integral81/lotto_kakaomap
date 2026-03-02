@@ -4,10 +4,14 @@ on:
   schedule:
     # ===== 1214회 전용: 2026-03-07 토요일 22:50 KST (UTC 13:50) =====
     - cron: '50 13 7 3 6'
-    # ===== 1215회부터 평시: 매주 토요일 21:10 KST (UTC 12:10) =====
-    # 활성화 시점: 2026-03-14(1215회)부터 아래 줄 주석 해제, 위 1214회 줄 삭제
-    # - cron: '10 12 * * 6'
+    # ===== 1215회부터 평시: 매주 토요일 21:10 KST (UTC 12:10) - 상시 활성 =====
+    - cron: '10 12 * * 6'
   workflow_dispatch: # 수동 트리거 허용
+
+# 동시 실행 방지: 이미 실행 중인 job이 있으면 새 trigger는 자동 취소
+concurrency:
+  group: lotto-weekly-update
+  cancel-in-progress: false  # 실행 중인 job 보호 (새 trigger를 취소)
 
 jobs:
   update-data:
