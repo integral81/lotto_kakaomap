@@ -2910,10 +2910,17 @@
                             <button class="dream-tag" onclick="handleDreamTag('돼지')">🐷 돼지</button>
                             <button class="dream-tag" onclick="handleDreamTag('똥')">💩 똥</button>
                             <button class="dream-tag" onclick="handleDreamTag('조상')">👴 조상</button>
-                            <div style="flex-basis: 100%; height: 0;"></div> <!-- 줄바꿈 처리 -->
+                            <div style="flex-basis: 100%; height: 0;"></div>
                             <button class="dream-tag" onclick="handleDreamTag('불')">🔥 불</button>
                             <button class="dream-tag" onclick="handleDreamTag('물')">💧 물</button>
                             <button class="dream-tag" onclick="handleDreamTag('뱀')">🐍 뱀</button>
+                            <div style="flex-basis: 100%; height: 0;"></div>
+                            <button class="dream-tag" onclick="handleDreamTag('대통령')">👑 대통령/귀인</button>
+                            <button class="dream-tag" onclick="handleDreamTag('이빨')">🦷 새이빨꿈</button>
+                            <button class="dream-tag" onclick="handleDreamTag('집')">🏠 집/이사</button>
+                            <div style="flex-basis: 100%; height: 0;"></div>
+                            <button class="dream-tag" onclick="handleDreamTag('피')">🩸 피</button>
+                            <button class="dream-tag" onclick="handleDreamTag('비행')">✈️ 비행/하늘</button>
                         </div>
 
                         <div class="dream-input-box">
@@ -4558,7 +4565,13 @@
                     '불': [2, 11, 22, 33, 40, 44],
                     '물': [4, 9, 21, 26, 31, 37],
                     '뱀': [5, 10, 16, 28, 34, 45],
-                    '용': [7, 18, 20, 30, 42, 45]
+                    '용': [7, 18, 20, 30, 42, 45],
+                    // === 신규 추가 5가지 ===
+                    '대통령': [1, 9, 19, 30, 39, 45],  // 👑 권위·명예·대박
+                    '이빨': [2, 13, 24, 31, 38, 44], // 🦷 새로운 시작·재물
+                    '집': [3, 11, 18, 27, 36, 43], // 🏠 번창·목돈
+                    '피': [4, 14, 22, 29, 37, 42], // 🩸 생명력·재물운 분출
+                    '비행': [6, 15, 25, 32, 40, 45], // ✈️ 신분상승·소원성취
                 };
 
                 // If keyword exists in map, return it (with small variation if needed, but fixed for now)
