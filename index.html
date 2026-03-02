@@ -1826,7 +1826,7 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 5;
+            z-index: 9999;
             display: flex;
             align-items: center;
             background: rgba(255, 255, 255, 0.95);
@@ -1905,10 +1905,10 @@
             /* Mobile Specific Search Bar Styles */
             .portal-search-container {
                 top: 15px;
-                /* 모바일은 좌측 메뉴버튼(hamburger)과 우측 빠른버튼 공간 등을 고려하여 정렬 및 넓이 조정 */
-                width: calc(100% - 110px);
-                left: 60px;
-                /* hamburger 버튼(좌상단)을 피하기 위해 left 고정 위치 */
+                /* 모바일에서 우측 햄버거 메뉴 및 타겟 버튼과 겹치지 않도록 동적 너비 및 여백 할당 */
+                left: 15px;
+                right: 80px;
+                width: auto;
                 transform: none;
                 /* translateX 제거 */
                 padding: 4px 12px;
