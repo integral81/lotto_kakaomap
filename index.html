@@ -4168,6 +4168,7 @@
 
                         // === 특수 검색어(고도화) 추천 추가 ===
                         const specialKeywords = [
+                            "최신 1등", "최근 1등",
                             "우리동네 1등", "전국 1등", "전국 top 10",
                             "서울 1등", "경기 1등", "인천 1등", "부산 1등", "대구 1등",
                             "광주 1등", "대전 1등", "제주 1등", "강원 1등"
@@ -4467,7 +4468,18 @@
                     const qRaw = currentPortalQuery.trim().toLowerCase();
                     const q = qRaw.replace(/\s+/g, ''); // 띄어쓰기 무시 식별용
 
-                    if (q === "전국1등" || q === "전국1위") {
+                    // ===== [최신/최근 1위·1등] 가장 최신 회차 1등 판매점 전체 노출 =====
+                    if (q === "최신1등" || q === "최신1위" || q === "최근1등" || q === "최근1위") {
+                        // allData에서 동적으로 최신 회차 번호 추출 (자동 업데이트 후 자동 반영)
+                        const latestRound = Math.max(...allData.map(d => d.r || 0));
+                        filtered = filtered.filter(d => {
+                            if ((d.n || "").includes("동행복권")) return false;
+                            return d.r === latestRound;
+                        });
+                        // 검색어를 "제1213회 1등" 형태로 표시
+                        const input = document.getElementById('portalSearchInput');
+                        if (input) input.value = `제${latestRound}회 1등 판매점`;
+                    } else if (q === "전국1등" || q === "전국1위") {
                         // 동행복권을 제외한 데이터 중 가장 당첨 횟수가 많은 매장 추출
                         const validShops = filtered.filter(d => !(d.n || "").includes("동행복권"));
                         if (validShops.length > 0) {
