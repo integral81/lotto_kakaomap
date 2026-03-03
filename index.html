@@ -5539,6 +5539,9 @@
                             ball.className = 'ball ' + getBallColor(n);
                             ball.innerText = n;
                             ball.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+                            ball.style.width = '42px';
+                            ball.style.height = '42px';
+                            ball.style.fontSize = '16.8px';
                             ballsRow.appendChild(ball);
                         });
                         groupWrapper.appendChild(ballsRow);
@@ -5555,6 +5558,9 @@
                         const copyBtn = document.createElement('div');
                         copyBtn.className = 'omr-action-btn';
                         copyBtn.innerHTML = '📋 복사';
+                        copyBtn.style.padding = '4.8px 11.2px';
+                        copyBtn.style.fontSize = '10.4px';
+                        copyBtn.style.gap = '4.8px';
                         copyBtn.onclick = (e) => {
                             e.stopPropagation();
                             copyToClipboard(numbers);
@@ -5565,6 +5571,9 @@
                         const omrBtn = document.createElement('div');
                         omrBtn.className = 'omr-action-btn';
                         omrBtn.innerHTML = '📝 OMR';
+                        omrBtn.style.padding = '4.8px 11.2px';
+                        omrBtn.style.fontSize = '10.4px';
+                        omrBtn.style.gap = '4.8px';
                         omrBtn.onclick = (e) => {
                             e.stopPropagation();
                             openOMR(numbers);
