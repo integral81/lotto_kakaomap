@@ -4473,8 +4473,15 @@
                         validShops.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0));
                         filtered = validShops.slice(0, topCount);
                     } else if (q.endsWith("1등") || q.endsWith("1위")) {
-                        // "서울1등", "부산1등", "영등포구1등" 지원 로직
-                        const region = q.replace(/(1등|1위)/g, ''); // "서울"
+                        // "서울1등", "부산1등", "영등포구1등", "제주도1위" 지원 로직
+                        let region = q.replace(/(1등|1위)/g, ''); // "서울", "제주도" 등
+                        // 도 접미사 정규화: "제주도" → "제주", "경기도" → "경기", "전라도" → "전라", "충청도" → "충청" 등
+                        region = region
+                            .replace(/특별자치도$/, '')
+                            .replace(/특별자치시$/, '')
+                            .replace(/특별시$/, '')
+                            .replace(/광역시$/, '')
+                            .replace(/도$/, '');
 
                         const validShops = filtered.filter(d => {
                             if ((d.n || "").includes("동행복권")) return false;
@@ -4492,7 +4499,14 @@
                         // "서울top5", "제주도top3" 지원 로직
                         const match = q.match(/(top|톱)(\d+)$/);
                         const topCount = parseInt(match[2], 10);
-                        const region = q.replace(match[0], '');
+                        let region = q.replace(match[0], '');
+                        // 도 접미사 정규화: "제주도" → "제주", "경기도" → "경기" 등
+                        region = region
+                            .replace(/특별자치도$/, '')
+                            .replace(/특별자치시$/, '')
+                            .replace(/특별시$/, '')
+                            .replace(/광역시$/, '')
+                            .replace(/도$/, '');
 
                         const validShops = filtered.filter(d => {
                             if ((d.n || "").includes("동행복권")) return false;
