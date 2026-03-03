@@ -1173,6 +1173,11 @@
                 font-size: 13px !important;
             }
 
+            #toast-container {
+                top: 80px;
+                /* 모바일: 검색창(top48px+높이~36px) 기준 충분한 여백 */
+            }
+
             .menu-btn {
                 position: absolute !important;
                 top: 20px !important;
@@ -1195,8 +1200,8 @@
         /* Toast Notification Styles */
         #toast-container {
             position: fixed;
-            top: 80px;
-            /* Better avoidance for iPhone 15 Dynamic Island/Status Bar */
+            top: 115px;
+            /* PC: 수식 = 기존 로고(13px)+검색창(top56px+높이~46px) 이하 보우기 위해 115px */
             left: 50%;
             transform: translateX(-50%);
             z-index: 99999;
