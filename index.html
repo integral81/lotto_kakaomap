@@ -4434,16 +4434,33 @@
                         (!isNarrowRange && isHighWinShop);
 
                     let mMatch = false;
-                    // 만약 당첨 방식 정보가 없으면 필터 체크 여부와 상관없이 보여줌 (요약 데이터 대응)
-                    if (d.m === undefined || d.m === "정보없음") {
-                        mMatch = true;
+                    // 선택된 방식 필터 중 최소 하나라도 체크되었는지 확인
+                    const anyMethodChecked = auto || manual || semi || site;
+
+                    if (!anyMethodChecked) {
+                        // 아무것도 체크 안 된 경우 아무것도 표시 안 함
+                        mMatch = false;
                     } else if (d.isOnline || d.m === '사이트') {
                         // 온라인(사이트) 당첨 - 사이트 체크박스로 필터
                         if (site) mMatch = true;
-                    } else {
+                    } else if (d.m !== undefined && d.m !== '정보없음') {
+                        // 단일 회차 데이터: m 필드 직접 체크
                         if (auto && d.m.includes('자동')) mMatch = true;
                         if (manual && d.m.includes('수동')) mMatch = true;
                         if (semi && d.m.includes('반자동')) mMatch = true;
+                    } else if (d.rounds && d.rounds.length > 0) {
+                        // 다회 당첨 집계 데이터(m 없음): rounds 배열에서 방식 체크
+                        mMatch = d.rounds.some(round => {
+                            const rm = round.m || '';
+                            if (site && rm === '사이트') return true;
+                            if (auto && rm.includes('자동')) return true;
+                            if (manual && rm.includes('수동')) return true;
+                            if (semi && rm.includes('반자동')) return true;
+                            return false;
+                        });
+                    } else {
+                        // 방식 정보가 전혀 없는 데이터: 모든 방식 필터 공통 통과
+                        mMatch = true;
                     }
 
                     return rMatch && mMatch;
