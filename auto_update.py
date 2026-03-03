@@ -299,7 +299,7 @@ def update_history_json(draw_no, numbers):
         if key not in hist:
             hist[key] = numbers
             with open(hist_path, "w", encoding="utf-8") as f:
-                json.dump(hist, f, ensure_ascii=False)
+                json.dump(hist, f, ensure_ascii=False, separators=(',', ':'))
             print(f"[History] {draw_no}회 번호 {numbers} 저장 완료")
         else:
             print(f"[History] {draw_no}회 이미 존재, 스킵")
@@ -429,9 +429,9 @@ def run_update(target_round):
         all_data.sort(key=lambda x: x.get("r", 0), reverse=True)
         
         with open(JSON_FILE, "w", encoding="utf-8") as f:
-            json.dump(all_data, f, ensure_ascii=False, indent=2)
+            json.dump(all_data, f, ensure_ascii=False, separators=(',', ':'))
         with open(JS_FILE, "w", encoding="utf-8") as f:
-            f.write("const lottoData = " + json.dumps(all_data, ensure_ascii=False, indent=2) + ";")
+            f.write("const lottoData = " + json.dumps(all_data, ensure_ascii=False, separators=(',', ':')) + ";")
         
         print(f"[Update] ✅ {JSON_FILE} 업데이트 완료 (총 {len(all_data)}개)")
     except Exception as e:
