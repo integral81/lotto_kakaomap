@@ -146,6 +146,99 @@
     <!-- Kakao SDK for Sharing -->
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" onload="initKakaoGlobal()"></script>
     <style>
+        /* === KINOV Custom Alert === */
+        .kinov-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 10005;
+            /* Above everything */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .kinov-alert-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .kinov-alert-box {
+            background: rgba(103, 58, 183, 0.9);
+            /* Semi-transparent Purple */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            width: 85%;
+            max-width: 320px;
+            border-radius: 16px;
+            padding: 24px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            position: relative;
+        }
+
+        .kinov-alert-overlay.show .kinov-alert-box {
+            transform: translateY(0) scale(1);
+        }
+
+        .kinov-alert-logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: block;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .kinov-alert-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .kinov-alert-message {
+            font-size: 14px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            word-break: keep-all;
+        }
+
+        .kinov-alert-btn {
+            background: #fff;
+            color: #673ab7;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .kinov-alert-btn:hover {
+            background: #f1f1f1;
+        }
+
+        .kinov-alert-btn:active {
+            transform: scale(0.95);
+        }
+
         :root {
             --primary: #d32f2f;
             --secondary: #1976d2;
@@ -4337,7 +4430,7 @@
                     const latestRound = (typeof allData !== 'undefined' && allData.length > 0) ? Math.max(...allData.map(d => d.r || 0)) : 1213;
 
                     if (searchNum > latestRound) {
-                        alert(`가장 마지막 당첨회차는 ${latestRound}회차였습니다!!`);
+                        showKinovAlert(`가장 마지막 당첨회차는<br><strong style="font-size:16px; color:#ffd700;">${latestRound}회차</strong>였습니다!!`);
                         input.value = "";
                         if (typeof hideAutocomplete === 'function') hideAutocomplete();
                         return;
@@ -11694,6 +11787,33 @@
         // Run on load and on resize
         document.addEventListener('DOMContentLoaded', updatePortalPlaceholder);
         window.addEventListener('resize', updatePortalPlaceholder);
+    </script>
+    <!-- ========== Custom KINOV Alert Modal ========== -->
+    <div id="kinovAlertDialog" class="kinov-alert-overlay">
+        <div class="kinov-alert-box">
+            <img src="assets/KINOV_alert_logo.jpg" alt="KINOV Logo" class="kinov-alert-logo">
+            <div class="kinov-alert-title">안내 메시지</div>
+            <div id="kinovAlertMessage" class="kinov-alert-message"></div>
+            <button class="kinov-alert-btn" onclick="closeKinovAlert()">확인</button>
+        </div>
+    </div>
+    <script>
+        function showKinovAlert(msgContent) {
+            const overlay = document.getElementById('kinovAlertDialog');
+            const msgObj = document.getElementById('kinovAlertMessage');
+            if (overlay && msgObj) {
+                msgObj.innerHTML = msgContent;
+                overlay.classList.add('show');
+            } else {
+                // Fallback if elements not found
+                alert(msgContent.replace(/<[^>]*>?/gm, ''));
+            }
+        }
+
+        function closeKinovAlert() {
+            const overlay = document.getElementById('kinovAlertDialog');
+            if (overlay) overlay.classList.remove('show');
+        }
     </script>
 </body>
 
