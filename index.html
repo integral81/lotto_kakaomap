@@ -4328,6 +4328,21 @@
             function executePortalSearch() {
                 const input = document.getElementById('portalSearchInput');
                 const val = input.value.trim();
+                const normalizedVal = val.toLowerCase().replace(/\s+/g, '');
+
+                // ===== [신규] 미래 회차 검색어(예: 2013회 당첨) 안내 기능 =====
+                const futureMatch = normalizedVal.match(/(\d+)(회|당첨|당첨자|회차)/) || normalizedVal.match(/^(\d+)$/);
+                if (futureMatch) {
+                    const searchNum = parseInt(futureMatch[1], 10);
+                    const latestRound = (typeof allData !== 'undefined' && allData.length > 0) ? Math.max(...allData.map(d => d.r || 0)) : 1213;
+
+                    if (searchNum > latestRound) {
+                        alert(`가장 마지막 당첨회차는 ${latestRound}회차였습니다!!`);
+                        input.value = "";
+                        if (typeof hideAutocomplete === 'function') hideAutocomplete();
+                        return;
+                    }
+                }
 
                 if (val !== "") {
                     saveRecentSearch(val);
@@ -4346,8 +4361,6 @@
                         console.error("추적 코드 전송 실패:", e);
                     }
                 }
-
-                const normalizedVal = val.toLowerCase().replace(/\s+/g, '');
 
                 // "우리동네 1등" 등 GPS 기반 스마트 검색 처리 (띄어쓰기 무시)
                 if (normalizedVal === "우리동네1등" || normalizedVal === "우리동네1위" || normalizedVal.includes("우리동네top") || normalizedVal.includes("우리동네톱")) {
