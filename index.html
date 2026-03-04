@@ -611,6 +611,7 @@
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            z-index: 10001;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             /* Reset inline styles override */
             padding: 0 !important;
@@ -1444,7 +1445,7 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 9999;
+            z-index: auto;
             left: 0;
             top: 0;
             width: 100%;
@@ -1467,6 +1468,7 @@
             text-align: center;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             position: relative;
+            z-index: 10001;
             overflow: hidden;
             overflow-y: auto;
             cursor: default;
@@ -1982,7 +1984,7 @@
             margin-top: 8px;
             max-height: 280px;
             overflow-y: auto;
-            z-index: 10000;
+            z-index: 10003;
             display: none;
             flex-direction: column;
             border: 1px solid rgba(0, 0, 0, 0.05);
@@ -2037,6 +2039,7 @@
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(102, 126, 234, 0.5);
             background: white;
+            z-index: 10002 !important;
         }
 
         .portal-search-input {
