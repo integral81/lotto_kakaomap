@@ -11820,18 +11820,14 @@
         // === Excel (CSV) Download Feature ===
         function downloadExcel() {
             if (!allData || allData.length === 0) {
-                alert("당첨 도달 데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+                showKinovAlert("당첨 도달 데이터를 불러오는 중입니다.<br>잠시 후 다시 시도해주세요.");
                 return;
             }
 
-            // Extract history data mapping: drwNo -> numbers
-            // lotto_data.json already has this info in historyObj, or we can use LOTTO_HISTORY
-            // Assuming window.lottoHistory is available, or we derive from allData
-            // The cleanest way is to use LOTTO_HISTORY or window.lottoHistory if loaded
             let historySource = null;
             if (typeof LOTTO_HISTORY !== 'undefined' && LOTTO_HISTORY) {
                 historySource = LOTTO_HISTORY;
-            } else if (window.lottoHistory && window.lottoHistory.length > 0) {
+            } else if (window.lottoHistory && Object.keys(window.lottoHistory).length > 0) {
                 historySource = window.lottoHistory;
             }
 
@@ -11840,37 +11836,42 @@
             csvContent += headers;
 
             if (historySource && Object.keys(historySource).length > 0) {
-                // Array format
-                if (Array.isArray(historySource)) {
-                    let sortedHistory = [...historySource].sort((a, b) => b.drwNo - a.drwNo);
-                    sortedHistory.forEach(item => {
+                const getDrawDate = (round) => {
+                    const firstDrawDate = new Date(2002, 11, 7); // 2002-12-07
+                    const targetDate = new Date(firstDrawDate.getTime() + (round - 1) * 7 * 24 * 60 * 60 * 1000);
+                    const year = targetDate.getFullYear();
+                    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(targetDate.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+
+                // Extract and sort descending
+                const drwNos = Object.keys(historySource).map(Number).sort((a, b) => b - a);
+                // Filter out non-numeric keys if any
+                drwNos.filter(n => !isNaN(n)).forEach(no => {
+                    const item = historySource[no];
+                    if (Array.isArray(item) && item.length >= 7) {
+                        // array format from lotto_history.json: [n1, n2, n3, n4, n5, n6, bonus]
                         let row = [
-                            item.drwNo,
-                            item.drwNoDate || "",
-                            item.drwtNo1, item.drwtNo2, item.drwtNo3, item.drwtNo4, item.drwtNo5, item.drwtNo6,
-                            item.bnusNo
+                            no,
+                            getDrawDate(no),
+                            item[0], item[1], item[2], item[3], item[4], item[5],
+                            item[6]
                         ];
                         csvContent += row.join(",") + "\n";
-                    });
-                } else {
-                    // Object format structure
-                    const drwNos = Object.keys(historySource).map(Number).sort((a, b) => b - a); // Descending
-                    drwNos.forEach(no => {
-                        const item = historySource[no];
+                    } else if (item && typeof item === 'object' && item.drwtNo1) {
+                        // object format fallback
                         let row = [
                             item.drwNo || no,
-                            item.drwNoDate || "",
+                            item.drwNoDate || getDrawDate(no),
                             item.drwtNo1, item.drwtNo2, item.drwtNo3, item.drwtNo4, item.drwtNo5, item.drwtNo6,
                             item.bnusNo
                         ];
                         csvContent += row.join(",") + "\n";
-                    });
-                }
+                    }
+                });
             } else {
-                // Fallback: Group by drwNo from allData
-                // This might not have drwNoDate or properly ordered bonuses without full history, 
-                // but usually lottoHistory is loaded globally.
-                alert("당첨 상세 내역 로딩이 아직 완료되지 않았습니다. 잠시 후 다시 시도해주세요.");
+                showKinovAlert("당첨 상세 내역 로딩이 아직 완료되지 않았습니다.<br>잠시 후 다시 시도해주세요.");
                 return;
             }
 
