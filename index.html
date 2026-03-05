@@ -4095,15 +4095,15 @@
             }
 
             function updateLegendIcons(baseUrl) {
-                const map = {
+                const iconMap = {
                     "icon10": "legend_tier1.png",
                     "icon5": "legend_tier2.png",
                     "icon3": "legend_tier3.png",
                     "icon1": "legend_tier4.png"
                 };
-                for (let id in map) {
+                for (let id in iconMap) {
                     const el = document.getElementById(id);
-                    if (el) el.src = (baseUrl || './') + 'assets/markers/' + map[id];
+                    if (el) el.src = (baseUrl || './') + 'assets/markers/' + iconMap[id];
                 }
             }
 
