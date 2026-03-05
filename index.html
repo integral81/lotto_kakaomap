@@ -1445,7 +1445,7 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: auto;
+            z-index: 10001;
             left: 0;
             top: 0;
             width: 100%;
@@ -3191,7 +3191,7 @@
             </div>
         </div>
 
-        <div id="adModal" class="modal" onclick="closeModal()">
+        <div id="adModal" class="modal" onclick="handleAdModalClick(event)">
             <!-- AI Modal Content (Fixed Header + Scrollable Body) -->
             <div id="adContent" class="ai-modal-content" onclick="event.stopPropagation()">
                 <!-- Fixed Header -->
@@ -5585,6 +5585,36 @@
                     numbers: Array.from(selected).sort((a, b) => a - b),
                     historyCount: 0
                 };
+            }
+
+            function handleAdModalClick(e) {
+                const searchBox = document.getElementById('portalSearchContainer');
+                if (searchBox) {
+                    const rect = searchBox.getBoundingClientRect();
+                    // Check if click is inside the search box bounding client rect
+                    if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                        e.clientY >= rect.top && e.clientY <= rect.bottom) {
+
+                        // Temporarily raise search box above the modal
+                        searchBox.style.zIndex = '10005';
+
+                        // Focus the input
+                        const input = document.getElementById('searchInput');
+                        if (input) {
+                            input.focus();
+                            // Reset z-index when focus is lost
+                            input.addEventListener('blur', function blurHandler() {
+                                searchBox.style.zIndex = '';
+                                input.removeEventListener('blur', blurHandler);
+                            }, { once: true });
+                        }
+
+                        // Prevent modal from closing
+                        e.stopPropagation();
+                        return;
+                    }
+                }
+                closeModal();
             }
 
             function closeModal() {
