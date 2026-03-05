@@ -4048,6 +4048,7 @@
                     window.lottoHistory = historyData;
 
                     // Detect base URL for assets (markers, etc.)
+                    // Try current page URL first, then fallback to GitHub Pages
                     let supaBaseUrl = './';
                     const supaHref = window.location.origin + window.location.pathname;
                     if (!supaHref.endsWith('/') && !supaHref.toLowerCase().endsWith('.html')) {
@@ -4055,10 +4056,30 @@
                     } else {
                         supaBaseUrl = supaHref.substring(0, supaHref.lastIndexOf("/") + 1);
                     }
-                    window.currentBaseUrl = supaBaseUrl;
+
+                    // Verify assets are accessible from current base URL, fallback to GitHub Pages if not
+                    const assetCandidates = [
+                        supaBaseUrl,
+                        './',
+                        '/lottomap/',
+                        'https://integral81.github.io/lottomap/'
+                    ];
+                    let resolvedBaseUrl = supaBaseUrl;
+                    for (const candidate of [...new Set(assetCandidates)]) {
+                        try {
+                            const testUrl = candidate + 'assets/markers/tier1.png';
+                            const testRes = await fetch(testUrl, { method: 'HEAD' });
+                            if (testRes.ok) {
+                                resolvedBaseUrl = candidate;
+                                console.log(`[Data] Asset base URL resolved: ${candidate}`);
+                                break;
+                            }
+                        } catch (e) { /* skip */ }
+                    }
+                    window.currentBaseUrl = resolvedBaseUrl;
 
                     processLoadedData(lottoData);
-                    updateLegendIcons(supaBaseUrl);
+                    updateLegendIcons(resolvedBaseUrl);
                     console.log(`[Data] ✅ Supabase load complete! ${lottoData.length} stores, ${roundRows.length} rounds`);
                     return; // Success!
 
