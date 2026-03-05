@@ -3969,17 +3969,108 @@
                 }
             };
 
+            // === Supabase Configuration ===
+            const SUPABASE_URL = 'https://sdvrijpwwpqgaivfutjm.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnJpanB3d3BxZ2FpdmZ1dGptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDQ3MTQsImV4cCI6MjA4ODI4MDcxNH0.AkOBYYpCHsE7g3F6c-6Y51YDSZGU67WIGatWQaQ6ubI';
+
+            // Supabase REST API helper: fetch all rows with auto-pagination
+            async function supabaseFetchAll(table, params = '') {
+                const pageSize = 1000;
+                const headers = {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                };
+                let allRows = [];
+                let page = 0;
+                while (true) {
+                    const sep = params ? '&' : '?';
+                    const url = `${SUPABASE_URL}/rest/v1/${table}${params}${sep}offset=${page * pageSize}&limit=${pageSize}`;
+                    const res = await fetch(url, { headers });
+                    if (!res.ok && res.status !== 206) throw new Error(`Supabase ${table}: HTTP ${res.status}`);
+                    const batch = await res.json();
+                    allRows = allRows.concat(batch);
+                    if (batch.length < pageSize) break;
+                    page++;
+                }
+                return allRows;
+            }
+
             async function loadData() {
                 const countEl = document.getElementById('totalDataCount');
                 console.log('[Data] Starting loadData...');
 
+                // ======= Strategy 1: Supabase API (Primary) =======
+                try {
+                    console.log('[Data] Attempting Supabase API...');
+                    const startTime = performance.now();
+
+                    // Parallel fetch: store stats view + lotto rounds
+                    const [storeRows, roundRows] = await Promise.all([
+                        supabaseFetchAll('vw_lotto_store_stats', '?select=*'),
+                        supabaseFetchAll('lotto_rounds', '?select=*&order=round.desc')
+                    ]);
+
+                    console.log(`[Data] Supabase fetched: ${storeRows.length} stores, ${roundRows.length} rounds in ${((performance.now() - startTime) / 1000).toFixed(2)}s`);
+
+                    // Transform store data to match existing lotto_data.json format
+                    const lottoData = [];
+                    storeRows.forEach(store => {
+                        let rounds = store.rounds || [];
+                        if (!rounds || (rounds.length === 1 && rounds[0] === null)) return;
+                        rounds = rounds.filter(r => r !== null);
+                        if (rounds.length === 0) return;
+
+                        const latestRound = Math.max(...rounds.map(r => r.r));
+                        const item = {
+                            n: store.name,
+                            a: store.address,
+                            lat: store.lat,
+                            lng: store.lng,
+                            w: store.total_wins,
+                            totalWins: store.total_wins,
+                            r: latestRound,
+                            rounds: rounds,
+                            m: rounds[0].m || '정보없음'
+                        };
+                        if (store.is_online) item.isOnline = true;
+                        if (store.verified) item.verified = true;
+                        lottoData.push(item);
+                    });
+
+                    // Transform round data to match existing lotto_history.json format
+                    const historyData = {};
+                    roundRows.forEach(row => {
+                        historyData[String(row.round)] = [
+                            row.num1, row.num2, row.num3, row.num4, row.num5, row.num6, row.bonus
+                        ];
+                    });
+
+                    window.lottoHistory = historyData;
+
+                    // Detect base URL for assets (markers, etc.)
+                    let supaBaseUrl = './';
+                    const supaHref = window.location.origin + window.location.pathname;
+                    if (!supaHref.endsWith('/') && !supaHref.toLowerCase().endsWith('.html')) {
+                        supaBaseUrl = supaHref + '/';
+                    } else {
+                        supaBaseUrl = supaHref.substring(0, supaHref.lastIndexOf("/") + 1);
+                    }
+                    window.currentBaseUrl = supaBaseUrl;
+
+                    processLoadedData(lottoData);
+                    updateLegendIcons(supaBaseUrl);
+                    console.log(`[Data] ✅ Supabase load complete! ${lottoData.length} stores, ${roundRows.length} rounds`);
+                    return; // Success!
+
+                } catch (err) {
+                    console.warn('[Data] Supabase API failed, falling back to JSON files:', err.message);
+                }
+
+                // ======= Strategy 2: Local/Remote JSON Files (Fallback) =======
                 const cacheBuster = '?v=' + Date.now();
 
-                // 1. Intelligent Base Path Detection
                 let href = window.location.origin + window.location.pathname;
                 let normalizedBase = href;
-
-                // If URL is just .../lottomap, it should be .../lottomap/
                 if (!normalizedBase.endsWith('/') && !normalizedBase.toLowerCase().endsWith('.html')) {
                     normalizedBase += '/';
                 } else {
@@ -3998,7 +4089,7 @@
 
                 for (const baseUrl of uniqueUrls) {
                     try {
-                        console.log(`[Data] Attempting to load from: ${baseUrl}`);
+                        console.log(`[Data] Fallback: Attempting JSON from: ${baseUrl}`);
                         const [lottoData, historyData] = await Promise.all([
                             fetch(baseUrl + 'lotto_data.json' + cacheBuster).then(res => {
                                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -4011,10 +4102,10 @@
                         ]);
 
                         window.lottoHistory = historyData;
-                        window.currentBaseUrl = baseUrl; // Store for markers
+                        window.currentBaseUrl = baseUrl;
                         processLoadedData(lottoData);
-                        updateLegendIcons(baseUrl); // Update legend image paths
-                        console.log(`[Data] Successfully loaded from: ${baseUrl}`);
+                        updateLegendIcons(baseUrl);
+                        console.log(`[Data] Successfully loaded JSON from: ${baseUrl}`);
                         return; // Success!
 
                     } catch (err) {
@@ -4027,7 +4118,6 @@
                 console.error('[Data] All data sources failed.', errorLog);
                 countEl.innerHTML = `<span style="color:red; font-size:11px;">로드 실패</span>`;
 
-                // Fallback for legend anyway
                 updateLegendIcons('./');
 
                 const mapDiv = document.getElementById('map');
@@ -4264,7 +4354,7 @@
                     }
                 } else {
                     // 데이터 기반 실시간 추천어 (매장명, 주소) 매칭
-                    if (typeof lottoData !== 'undefined') {
+                    if (typeof allData !== 'undefined' && allData.length > 0) {
                         const matches = [];
                         const uniqueCheck = new Set();
 
@@ -4294,8 +4384,8 @@
                         }
 
                         // 단순 텍스트 포함 검색 (가벼운 필터링)
-                        for (let i = 0; i < lottoData.length; i++) {
-                            const shop = lottoData[i];
+                        for (let i = 0; i < allData.length; i++) {
+                            const shop = allData[i];
                             const nameMatch = shop.n.includes(val);
                             const addrMatch = shop.a.includes(val);
 
