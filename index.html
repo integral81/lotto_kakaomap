@@ -2906,6 +2906,86 @@
         }
 
         /* =========================================================
+           V1.3 UI Overhaul Details
+           ========================================================= */
+        #map {
+            background-color: #121212 !important;
+        }
+
+        /* Kakao Map Dark Vector Style Filter */
+        #map img[src*="map.kakao"],
+        #map img[src*="map.daumcdn"] {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) grayscale(20%);
+        }
+
+        /* Range Slider Thumb */
+        #minRound::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #5D31D4;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #minRound::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #5D31D4;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Floating buttons miniaturize */
+        .floating-btn,
+        .menu-btn,
+        .gps-button {
+            width: 42px !important;
+            height: 42px !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            background: rgba(30, 30, 30, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .floating-btn svg,
+        .menu-btn svg,
+        .gps-button svg {
+            width: 22px !important;
+            height: 22px !important;
+            fill: #e0e0e0 !important;
+        }
+
+        /* Search Bar Cleanup */
+        .search-box {
+            background: rgba(30, 30, 30, 0.95) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .search-box input {
+            color: white !important;
+            background: transparent !important;
+            border: none;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #999 !important;
+        }
+
+        .search-box svg {
+            fill: #ddd !important;
+        }
+
+        /* =========================================================
            MOBILE ONLY START : Do not modify above PC CSS directly 
            ========================================================= */
         @media (max-width: 768px) {
@@ -2974,6 +3054,127 @@
         /* =========================================================
            MOBILE ONLY END 
            ========================================================= */
+        /* V1.3 UI Overhaul - Near Me Glassmorphism Modal */
+        #nearMeModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: rgba(45, 45, 45, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 20px;
+            width: 85%;
+            max-width: 330px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            z-index: 10005;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #nearMeModal.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .near-me-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .near-me-title {
+            font-size: 19px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .near-me-close {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .near-me-close:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .near-me-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .near-me-card:active {
+            transform: scale(0.97);
+        }
+
+        .nm-card-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .nm-card-icon {
+            font-size: 26px;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+        }
+
+        .nm-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nm-card-name {
+            font-weight: 800;
+            font-size: 16px;
+            color: #111;
+        }
+
+        .nm-card-dist {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .nm-card-badge {
+            background: linear-gradient(135deg, #FFE177, #D4AF37);
+            color: #311B92;
+            font-weight: 900;
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -2984,35 +3185,55 @@
     <!-- End Google Tag Manager (noscript) -->
 
     <div id="app">
-        <div id="sidebar">
-            <h1>🎰 KINOV Lotto Map</h1>
+        <!-- V1.3 UI Overhaul - Near Me Modal UI -->
+        <div id="nearMeModal">
+            <div class="near-me-header">
+                <div class="near-me-title">📍 Near Me</div>
+                <div class="near-me-close" onclick="closeNearMeModal()">✕</div>
+            </div>
+            <div id="nearMeCardsContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Cards injected here dynamically -->
+            </div>
+        </div>
 
-            <!-- 로또 Navi 시작 버튼 (사용자 요청 위치) -->
+        <div id="sidebar">
+            <h1
+                style="color: #FFD700; font-family: 'Times New Roman', serif; font-size: 26px; text-align: center; letter-spacing: 2px; text-shadow: 0px 4px 6px rgba(0,0,0,0.5); font-weight: 900; background: linear-gradient(180deg, #FFE177 0%, #D4AF37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 20px 0; display: flex; align-items: center; justify-content: flex-start; gap: 8px;">
+                🎰 KINOV
+            </h1>
+
+            <!-- 로또 Navi 시작 버튼 -->
             <button id="naviModeBtn" onclick="toggleNaviMode()"
-                style="width: 100%; margin: 10px 0 20px 0; padding: 9.5px 20px; font-size: 19.2px; background: linear-gradient(135deg, #5D31D4, #4A27AB); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: flex-start; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                style="width: 100%; margin: 10px 0 20px 0; padding: 15px 20px; font-size: 20px; background: linear-gradient(135deg, #6b46c1, #4c1d95); color: white; border: none; border-radius: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 8px 15px rgba(76,29,149,0.4), inset 0 2px 4px rgba(255,255,255,0.2); text-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.2s, box-shadow 0.2s;"
+                onmouseover="this.style.transform='translateY(-2px) scale(1.02)'; this.style.boxShadow='0 12px 20px rgba(76,29,149,0.6)';"
+                onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 8px 15px rgba(76,29,149,0.4), inset 0 2px 4px rgba(255,255,255,0.2)';">
                 🧭 로또 Navi by AI
             </button>
 
             <div class="section">
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <span class="section-title round-title" style="margin-bottom:0;">📅 회차 필터 (Round)</span>
-                    <div class="input-row" style="display: flex; align-items: center; gap: 6px; width: 100%;">
-                        <input type="number" id="minRound" value="1">
-                        <span style="font-weight: bold; margin: 0 2px;">~</span>
-                        <input type="number" id="maxRound" value="1212" max="1212"
-                            oninput="if(parseInt(this.value) > 1212) this.value = 1212;">
-                        <div class="recent-dropdown">
-                            <button id="filterGuideAnchor" class="dropdown-toggle" onclick="toggleRecentDropdown()"
-                                style="padding: 6px 18px !important; min-width: 65px;">전체</button>
-                            <div id="recentDropdownMenu" class="dropdown-menu">
-                                <div class="dropdown-item" onclick="setRecentNRounds(10)">최근 10회</div>
-                                <div class="dropdown-item" onclick="setRecentNRounds(20)">최근 20회</div>
-                                <div class="dropdown-item" onclick="setRecentNRounds(30)">최근 30회</div>
-                                <div class="dropdown-item" onclick="setRecentNRounds(50)">최근 50회</div>
-                                <div class="dropdown-item" onclick="setRecentNRounds(100)">최근 100회</div>
-                                <div class="dropdown-item" onclick="setRecentNRounds('all')">전체</div>
-                            </div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+                        <span class="section-title round-title" style="margin-bottom:0;">📅 회차 필터 (Round)</span>
+                        <span id="minRoundDisplay"
+                            style="font-size: 14px; font-weight: bold; color: #5D31D4; margin-bottom: 2px;">Selected:
+                            전체</span>
+                    </div>
+                    <div class="input-row"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%;">
+                        <input type="range" id="minRound" min="1" max="1213" value="1"
+                            style="width: 100%; -webkit-appearance: none; height: 6px; background: linear-gradient(to right, #5D31D4 0%, #ddd 0%); border-radius: 5px; outline: none; margin: 12px 0 8px 0;"
+                            oninput="
+                                let displayMode = (this.value <= 1) ? '전체' : 'Round ' + this.value;
+                                document.getElementById('minRoundDisplay').innerText = 'Selected: ' + displayMode; 
+                                let pct = ((this.value - this.min) / (this.max - this.min)) * 100;
+                                this.style.background = `linear-gradient(to right, #5D31D4 ${pct}%, #ddd ${pct}%)`;
+                            " onchange="applyFilters()">
+                        <div
+                            style="display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: #888; font-weight: 500;">
+                            <span>1</span>
+                            <span>1213</span>
                         </div>
+                        <input type="hidden" id="maxRound" value="1213">
                     </div>
                     <div class="data-notice" style="display: block; width: 100%; margin: 0; box-sizing: border-box;">
                         1. 1등 당첨번호는 1회차부터 제공<br>
@@ -3874,10 +4095,15 @@
             }
 
             function updateLegendIcons(baseUrl) {
-                const map = { "icon10": "legend_tier1.png", "icon5": "legend_tier2.png", "icon3": "legend_tier3.png", "icon1": "legend_tier4.png" };
+                const map = {
+                    "icon10": "legend_tier1.png",
+                    "icon5": "legend_tier2.png",
+                    "icon3": "legend_tier3.png",
+                    "icon1": "legend_tier4.png"
+                };
                 for (let id in map) {
                     const el = document.getElementById(id);
-                    if (el) el.src = baseUrl + 'assets/markers/' + map[id];
+                    if (el) el.src = (baseUrl || './') + 'assets/markers/' + map[id];
                 }
             }
 
@@ -3997,24 +4223,76 @@
 
             async function loadData() {
                 const countEl = document.getElementById('totalDataCount');
-                console.log('[Data] Starting loadData...');
+                console.log('[Data] Starting optimized loadData...');
 
-                // ======= Strategy 1: Supabase API (Primary) =======
+                // 1. Initial Quick Fetch: Winning Rounds (Lotto History)
                 try {
-                    console.log('[Data] Attempting Supabase API...');
-                    const startTime = performance.now();
+                    const cachedHistory = localStorage.getItem('lottoHistoryCache');
+                    if (cachedHistory) {
+                        try {
+                            window.lottoHistory = JSON.parse(cachedHistory);
+                            console.log('[Data] Loaded history from cache');
+                        } catch (e) { localStorage.removeItem('lottoHistoryCache'); }
+                    }
 
-                    // Parallel fetch: store stats view + lotto rounds
-                    const [storeRows, roundRows] = await Promise.all([
-                        supabaseFetchAll('vw_lotto_store_stats', '?select=*'),
-                        supabaseFetchAll('lotto_rounds', '?select=*&order=round.desc')
-                    ]);
+                    const roundRows = await supabaseFetchAll('lotto_rounds', '?select=*&order=round.desc&limit=100');
+                    const historyData = {};
+                    roundRows.forEach(row => {
+                        historyData[String(row.round)] = [
+                            row.num1, row.num2, row.num3, row.num4, row.num5, row.num6, row.bonus
+                        ];
+                    });
+                    window.lottoHistory = historyData;
+                    localStorage.setItem('lottoHistoryCache', JSON.stringify(historyData));
+                } catch (err) {
+                    console.warn('[Data] History fetch failed:', err.message);
+                }
 
-                    console.log(`[Data] Supabase fetched: ${storeRows.length} stores, ${roundRows.length} rounds in ${((performance.now() - startTime) / 1000).toFixed(2)}s`);
+                // 2. Resolve Asset Base URL
+                let supaBaseUrl = './';
+                const supaHref = window.location.origin + window.location.pathname;
+                supaBaseUrl = supaHref.endsWith('/') || supaHref.toLowerCase().endsWith('.html')
+                    ? supaHref.substring(0, supaHref.lastIndexOf("/") + 1)
+                    : supaHref + '/';
 
-                    // Transform store data to match existing lotto_data.json format
-                    const lottoData = [];
+                const assetCandidates = [supaBaseUrl, './', 'https://integral81.github.io/lottomap/'];
+                window.currentBaseUrl = supaBaseUrl;
+                for (const candidate of [...new Set(assetCandidates)]) {
+                    try {
+                        const testRes = await fetch(candidate + 'assets/markers/tier1.png', { method: 'HEAD' });
+                        if (testRes.ok) { window.currentBaseUrl = candidate; break; }
+                    } catch (e) { }
+                }
+                updateLegendIcons(window.currentBaseUrl);
+
+                // 3. Setup Dynamic Viewport Loading
+                if (window.map) {
+                    kakao.maps.event.addListener(window.map, 'idle', throttle(loadVisibleMarkers, 300));
+                    loadVisibleMarkers();
+                }
+                console.log('[Data] Initial UI ready.');
+            }
+
+            const loadedStoreKeys = new Set();
+
+
+            async function loadVisibleMarkers() {
+                if (!window.map) return;
+                const bounds = window.map.getBounds();
+                const sw = bounds.getSouthWest();
+                const ne = bounds.getNorthEast();
+
+                // Small buffer to reduce requests
+                const params = `?lat=gte.${sw.getLat() - 0.01}&lat=lte.${ne.getLat() + 0.01}&lng=gte.${sw.getLng() - 0.01}&lng=lte.${ne.getLng() + 0.01}`;
+
+                try {
+                    const storeRows = await supabaseFetchAll('vw_lotto_store_stats', params);
+                    const newStores = [];
+
                     storeRows.forEach(store => {
+                        const key = `${store.id}`;
+                        if (loadedStoreKeys.has(key)) return;
+
                         let rounds = store.rounds || [];
                         if (!rounds || (rounds.length === 1 && rounds[0] === null)) return;
                         rounds = rounds.filter(r => r !== null);
@@ -4022,6 +4300,7 @@
 
                         const latestRound = Math.max(...rounds.map(r => r.r));
                         const item = {
+                            id: store.id,
                             n: store.name,
                             a: store.address,
                             lat: store.lat,
@@ -4034,125 +4313,137 @@
                         };
                         if (store.is_online) item.isOnline = true;
                         if (store.verified) item.verified = true;
-                        lottoData.push(item);
+
+                        newStores.push(item);
+                        allData.push(item);
+                        loadedStoreKeys.add(key);
                     });
 
-                    // Transform round data to match existing lotto_history.json format
-                    const historyData = {};
-                    roundRows.forEach(row => {
-                        historyData[String(row.round)] = [
-                            row.num1, row.num2, row.num3, row.num4, row.num5, row.num6, row.bonus
-                        ];
-                    });
-
-                    window.lottoHistory = historyData;
-
-                    // Detect base URL for assets (markers, etc.)
-                    // Try current page URL first, then fallback to GitHub Pages
-                    let supaBaseUrl = './';
-                    const supaHref = window.location.origin + window.location.pathname;
-                    if (!supaHref.endsWith('/') && !supaHref.toLowerCase().endsWith('.html')) {
-                        supaBaseUrl = supaHref + '/';
-                    } else {
-                        supaBaseUrl = supaHref.substring(0, supaHref.lastIndexOf("/") + 1);
+                    if (newStores.length > 0) {
+                        addNewMarkers(newStores);
+                        const countEl = document.getElementById('totalDataCount');
+                        if (countEl) countEl.innerText = allData.length;
                     }
-
-                    // Verify assets are accessible from current base URL, fallback to GitHub Pages if not
-                    const assetCandidates = [
-                        supaBaseUrl,
-                        './',
-                        '/lottomap/',
-                        'https://integral81.github.io/lottomap/'
-                    ];
-                    let resolvedBaseUrl = supaBaseUrl;
-                    for (const candidate of [...new Set(assetCandidates)]) {
-                        try {
-                            const testUrl = candidate + 'assets/markers/tier1.png';
-                            const testRes = await fetch(testUrl, { method: 'HEAD' });
-                            if (testRes.ok) {
-                                resolvedBaseUrl = candidate;
-                                console.log(`[Data] Asset base URL resolved: ${candidate}`);
-                                break;
-                            }
-                        } catch (e) { /* skip */ }
-                    }
-                    window.currentBaseUrl = resolvedBaseUrl;
-
-                    processLoadedData(lottoData);
-                    updateLegendIcons(resolvedBaseUrl);
-                    console.log(`[Data] ✅ Supabase load complete! ${lottoData.length} stores, ${roundRows.length} rounds`);
-                    return; // Success!
-
                 } catch (err) {
-                    console.warn('[Data] Supabase API failed, falling back to JSON files:', err.message);
+                    console.error('[Dynamic] Load failed:', err);
                 }
+            }
 
-                // ======= Strategy 2: Local/Remote JSON Files (Fallback) =======
-                const cacheBuster = '?v=' + Date.now();
+            function addNewMarkers(newStores) {
+                const newMarkers = [];
+                newStores.forEach(shop => {
+                    let markerImg = null;
+                    const baseUrl = window.currentBaseUrl || './';
+                    const ICON_TIER1 = baseUrl + 'assets/markers/tier1.png';
+                    const ICON_TIER2 = baseUrl + 'assets/markers/tier2.png';
+                    const ICON_TIER3 = baseUrl + 'assets/markers/tier3.png';
+                    const ICON_TIER4 = baseUrl + 'assets/markers/tier4.png';
+                    const ICON_CLOSED = 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%239e9e9e"/><path fill="white" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
 
-                let href = window.location.origin + window.location.pathname;
-                let normalizedBase = href;
-                if (!normalizedBase.endsWith('/') && !normalizedBase.toLowerCase().endsWith('.html')) {
-                    normalizedBase += '/';
-                } else {
-                    normalizedBase = normalizedBase.substring(0, normalizedBase.lastIndexOf("/") + 1);
+                    if (shop.totalWins >= 10) {
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER1, new kakao.maps.Size(64, 72), { offset: new kakao.maps.Point(32, 72) });
+                    } else if (shop.totalWins >= 5) {
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER2, new kakao.maps.Size(58, 64), { offset: new kakao.maps.Point(29, 64) });
+                    } else if (shop.totalWins >= 3) {
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER3, new kakao.maps.Size(52, 64), { offset: new kakao.maps.Point(26, 64) });
+                    } else {
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER4, new kakao.maps.Size(46, 56), { offset: new kakao.maps.Point(23, 56) });
+                    }
+                    if (shop.closed) markerImg = new kakao.maps.MarkerImage(ICON_CLOSED, new kakao.maps.Size(24, 24));
+
+                    const marker = new kakao.maps.Marker({
+                        position: new kakao.maps.LatLng(shop.lat, shop.lng),
+                        image: markerImg
+                    });
+                    marker.shopData = shop;
+                    setupInfoWindow(marker);
+                    newMarkers.push(marker);
+                    markers.push(marker);
+                });
+
+                if (window.clusterer) {
+                    window.clusterer.addMarkers(newMarkers);
                 }
+            }
 
-                const urls = [
-                    normalizedBase,
-                    './',
-                    '/lottomap/',
-                    'https://integral81.github.io/lottomap/'
-                ];
-
-                const uniqueUrls = [...new Set(urls)];
-                const errorLog = [];
-
-                for (const baseUrl of uniqueUrls) {
-                    try {
-                        console.log(`[Data] Fallback: Attempting JSON from: ${baseUrl}`);
-                        const [lottoData, historyData] = await Promise.all([
-                            fetch(baseUrl + 'lotto_data.json' + cacheBuster).then(res => {
-                                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                                return res.json();
-                            }),
-                            fetch(baseUrl + 'lotto_history.json' + cacheBuster).then(res => {
-                                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                                return res.json();
-                            })
-                        ]);
-
-                        window.lottoHistory = historyData;
-                        window.currentBaseUrl = baseUrl;
-                        processLoadedData(lottoData);
-                        updateLegendIcons(baseUrl);
-                        console.log(`[Data] Successfully loaded JSON from: ${baseUrl}`);
-                        return; // Success!
-
-                    } catch (err) {
-                        console.warn(`[Data] Failed to load from ${baseUrl}:`, err.message);
-                        errorLog.push(`${baseUrl}: ${err.message}`);
+            function throttle(func, limit) {
+                let lastFunc;
+                let lastRan;
+                return function () {
+                    const context = this;
+                    const args = arguments;
+                    if (!lastRan) {
+                        func.apply(context, args);
+                        lastRan = Date.now();
+                    } else {
+                        clearTimeout(lastFunc);
+                        lastFunc = setTimeout(function () {
+                            if ((Date.now() - lastRan) >= limit) {
+                                func.apply(context, args);
+                                lastRan = Date.now();
+                            }
+                        }, limit - (Date.now() - lastRan));
                     }
                 }
+            }
 
-                // Final Failure Display
-                console.error('[Data] All data sources failed.', errorLog);
-                countEl.innerHTML = `<span style="color:red; font-size:11px;">로드 실패</span>`;
+            // Centralized InfoWindow setup (moved out of updateMarkers loop)
+            function setupInfoWindow(marker) {
+                const shop = marker.shopData;
+                kakao.maps.event.addListener(marker, 'click', () => {
+                    closeAllToasts();
+                    if (currentInfoWindow) {
+                        currentInfoWindow.close();
+                        document.body.classList.remove('iw-open');
+                    }
+                    if (window.innerWidth <= 768) document.body.classList.add('iw-open');
 
-                updateLegendIcons('./');
+                    const sortedRounds = shop.rounds.sort((a, b) => b.r - a.r);
+                    let roundTagsHtml = sortedRounds.map(r => `<span class="iw-tag">${r.r}회(${r.m})</span>`).join('');
+                    if (shop.closed) roundTagsHtml = `<span class="iw-tag" style="background:#ff5252; color:white; font-weight:bold;">⛔ 폐업/휴업</span>` + roundTagsHtml;
 
-                const mapDiv = document.getElementById('map');
-                mapDiv.innerHTML = `
-                <div style="padding:20px; color:red; font-weight:bold; background:white; position:absolute; top:80px; left:20px; z-index:9999; border:2px solid red; max-width:90%; overflow:auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                    데이터 로드 실패: 모든 소스에서 파일 접근이 거부되었거나 파일이 없습니다.<br><br>
-                    <div style="font-size:11px; font-weight:normal; color:#333; margin-bottom:10px;">
-                        <strong>접속 주소:</strong> ${window.location.href}<br>
-                        <strong>시도한 경로:</strong><br>
-                        ${errorLog.map(e => "• " + e).join("<br>")}
-                    </div>
-                    <button onclick="location.reload(true)" style="padding:5px 15px; background:#d32f2f; color:white; border:none; border-radius:4px; cursor:pointer;">다시 시도</button>
-                    <button onclick="document.getElementById('fileInput').click()" style="padding:5px 15px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer; margin-left:5px;">파일 직접 선택</button>
-                </div>`;
+                    const maxVisible = window.innerWidth <= 640 ? 3 : 5;
+                    const baseUrl = window.currentBaseUrl || './';
+                    const getIcon = (w) => {
+                        if (w >= 10) return baseUrl + 'assets/markers/tier1.png';
+                        if (w >= 5) return baseUrl + 'assets/markers/tier2.png';
+                        if (w >= 3) return baseUrl + 'assets/markers/tier3.png';
+                        return baseUrl + 'assets/markers/tier4.png';
+                    };
+
+                    const safeAddr = (shop.a || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+                    const safeName = (shop.n || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+                    const displayAddr = shop.a.replace(/(\d+)\s/, '$1<br class="mobile-br"> ');
+
+                    const content = `
+                        <div class="infowindow">
+                            <div class="iw-title">${shop.n} <img src="${getIcon(shop.totalWins)}" class="iw-legend-icon"></div>
+                            <div class="iw-addr-box" onclick="copyToClipboard('${safeAddr}')">
+                                <span class="iw-addr">${displayAddr}</span>
+                                <span class="btn-copy-label">복사</span>
+                            </div>
+                            <div style="font-weight:bold; color:red; margin-bottom:5px; font-size:13px;">총 ${shop.totalWins}회 당첨</div>
+                            <div class="iw-details-wrapper">
+                                <div class="iw-details ${shop.totalWins > maxVisible ? 'collapsed' : ''}">${roundTagsHtml}</div>
+                                ${shop.totalWins > maxVisible ? `<button class="iw-more-btn" onclick="const det = this.parentElement.querySelector('.iw-details'); det.classList.toggle('collapsed'); this.innerText = det.classList.contains('collapsed') ? '더보기 ▾' : '닫기 ▴';">더보기 ▾</button>` : ''}
+                            </div>
+                            <button class="btn-gold" style="width:100%; margin-top:8px;" onclick="openAdModal('${safeName}', '${safeAddr}', ${shop.lat}, ${shop.lng}, ${shop.totalWins}, ${shop.closed})">✨ 이번 주 1등 추천 번호 받기</button>
+                            <div class="iw-actions">
+                                <button class="btn-iw btn-navi" style="width:100%;" onclick="openDirections(${shop.lat}, ${shop.lng}, '${safeName}')">🗺️ 카카오맵에서 보기</button>
+                            </div>
+                        </div>`;
+
+                    const infowindow = new kakao.maps.InfoWindow({ content: content, removable: true, zIndex: 10000 });
+                    infowindow.open(window.map, marker);
+                    currentInfoWindow = infowindow;
+
+                    const proj = window.map.getProjection();
+                    if (proj) {
+                        const markerPoint = proj.pointFromCoords(marker.getPosition());
+                        markerPoint.y -= (window.innerWidth <= 768 ? 180 : 250);
+                        window.map.panTo(proj.coordsFromPoint(markerPoint));
+                    }
+                });
             }
 
             // --- Advanced Prediction Algorithm ---
@@ -6392,8 +6683,15 @@
                 }
             }
 
+            function closeNearMeModal() {
+                const modal = document.getElementById('nearMeModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    setTimeout(() => { modal.style.display = 'none'; }, 300);
+                }
+            }
+
             function findNearestShop(lat, lng, label = "내 위치", shouldPan = true) {
-                let msg = "";
                 try {
                     if (!markers || markers.length === 0) {
                         if (shouldPan) showToast("현재 필터 조건에 부합하는 판매점이 지도에 없습니다.", "info");
@@ -6428,13 +6726,47 @@
                             return;
                         }
 
-                        msg = `📍 <strong style="white-space: nowrap;">${label} 주변 1등점</strong> <br class="mobile-br"> <strong>(가까운 순)</strong><br>`;
-                        topShops.forEach((item, index) => {
-                            const shop = item.marker.shopData;
-                            const distStr = item.distance < 1 ? Math.round(item.distance * 1000)
-                                + "m" : item.distance.toFixed(1) + "km";
-                            msg += `<div onclick="focusShop(${shop.lat}, ${shop.lng})" style="cursor:pointer; padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.05);">${index + 1}. ${shop.n} (${distStr})</div>`;
-                        });
+                        // Build Card UI instead of text Toast
+                        const container = document.getElementById('nearMeCardsContainer');
+                        if (container) {
+                            container.innerHTML = '';
+                            topShops.forEach((item) => {
+                                const shop = item.marker.shopData;
+                                const distStr = item.distance < 1 ? Math.round(item.distance * 1000) + "m" : item.distance.toFixed(1) + "km";
+
+                                // Aggregate total wins for the shop
+                                let shopEntry = allData.find(d => d.n === shop.n && d.a === shop.a);
+                                let roundsCount = 1;
+                                if (shopEntry && shopEntry.rounds) {
+                                    roundsCount = shopEntry.rounds.length;
+                                } else {
+                                    roundsCount = allData.filter(d => d.n === shop.n && d.a === shop.a).length;
+                                }
+
+                                const card = document.createElement('div');
+                                card.className = 'near-me-card';
+                                card.onclick = () => { closeNearMeModal(); focusShop(shop.lat, shop.lng); };
+                                card.innerHTML = `
+                                    <div class="nm-card-left">
+                                        <div class="nm-card-icon">🏆</div>
+                                        <div class="nm-card-info">
+                                            <div class="nm-card-name">${shop.n}</div>
+                                            <div class="nm-card-dist">${distStr}</div>
+                                        </div>
+                                    </div>
+                                    <div class="nm-card-badge">1등 ${roundsCount}회 배출</div>
+                                `;
+                                container.appendChild(card);
+                            });
+
+                            const modal = document.getElementById('nearMeModal');
+                            if (modal) {
+                                modal.style.display = 'flex';
+                                // Trigger reflow
+                                modal.offsetHeight;
+                                modal.classList.add('show');
+                            }
+                        }
 
                         if (shouldPan) {
                             const bounds = new kakao.maps.LatLngBounds();
@@ -6447,7 +6779,6 @@
                             const bottomPad = isMobile ? 180 : 40;
                             map.setBounds(bounds, 40, 40, bottomPad, 40);
                         }
-                        if (msg) showToast(msg, "success", true, 'nearby-shops-toast');
                     }
                 } catch (e) {
                     console.error("findNearestShop Error:", e);
