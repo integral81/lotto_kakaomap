@@ -6845,6 +6845,9 @@
                             return;
                         }
 
+                        // Clear lingering toasts from previous failure checks
+                        closeAllToasts();
+
                         // Build Card UI instead of text Toast
                         const container = document.getElementById('nearMeCardsContainer');
                         if (container) {
