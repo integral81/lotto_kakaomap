@@ -4266,8 +4266,8 @@
                 updateLegendIcons(window.currentBaseUrl);
 
                 // 3. Setup Dynamic Viewport Loading
-                if (window.map) {
-                    kakao.maps.event.addListener(window.map, 'idle', throttle(loadVisibleMarkers, 300));
+                if (map) {
+                    kakao.maps.event.addListener(map, 'idle', throttle(loadVisibleMarkers, 300));
                     loadVisibleMarkers();
                 }
                 console.log('[Data] Initial UI ready.');
@@ -4277,8 +4277,8 @@
 
 
             async function loadVisibleMarkers() {
-                if (!window.map) return;
-                const bounds = window.map.getBounds();
+                if (!map) return;
+                const bounds = map.getBounds();
                 const sw = bounds.getSouthWest();
                 const ne = bounds.getNorthEast();
 
@@ -4434,14 +4434,15 @@
                         </div>`;
 
                     const infowindow = new kakao.maps.InfoWindow({ content: content, removable: true, zIndex: 10000 });
-                    infowindow.open(window.map, marker);
+                    infowindow.open(map, marker);
                     currentInfoWindow = infowindow;
 
-                    const proj = window.map.getProjection();
+                    const proj = map.getProjection();
                     if (proj) {
                         const markerPoint = proj.pointFromCoords(marker.getPosition());
                         markerPoint.y -= (window.innerWidth <= 768 ? 180 : 250);
-                        window.map.panTo(proj.coordsFromPoint(markerPoint));
+                        const newCenter = proj.coordsFromPoint(markerPoint);
+                        map.panTo(newCenter);
                     }
                 });
             }
