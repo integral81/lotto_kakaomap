@@ -4113,10 +4113,16 @@
                 }
 
                 applyFilters();
+            }
 
+            // Centralized UI Initialization
+            function initUI() {
                 // Initial load of recent rounds
-                const initialMax = parseInt(document.getElementById('maxRound').value) || 1212;
-                updateRecentRounds(initialMax);
+                const maxSlider = document.getElementById('maxRound');
+                if (maxSlider) {
+                    const initialMax = parseInt(maxSlider.value) || 1213;
+                    updateRecentRounds(initialMax);
+                }
 
                 // --- Add Real-time Event Listeners ---
                 const filterIds = [
@@ -4141,7 +4147,8 @@
                         }
                     });
                 });
-                // Initialize dual slider visual state
+
+                // Initialize dual slider visual state initially
                 setTimeout(updateDualSliderUI, 50);
             }
 
@@ -4351,6 +4358,12 @@
                 } catch (err) {
                     console.warn('[Data] History fetch failed:', err.message);
                 }
+
+                // Call UI initialization now that base data exists
+                initUI();
+
+                // Force refresh the recent rounds list now that history is loaded
+                if (window.forceUpdateRecentRounds) window.forceUpdateRecentRounds();
 
                 // 2. Resolve Asset Base URL
                 let supaBaseUrl = './';
@@ -5374,6 +5387,9 @@
                     const targetRound = maxRound - i;
                     if (targetRound < 1) continue; // No rounds below 1
 
+                    // Safe fallback if nums isn't loaded due to network error
+                    const nums = window.lottoHistory[String(targetRound)] || [0, 0, 0, 0, 0, 0, 0];
+
                     const row = document.createElement('div');
                     row.className = 'recent-row';
 
@@ -5396,9 +5412,9 @@
 
                     // Get Winning Numbers
                     // lottoHistory key is string "1210"
-                    const nums = window.lottoHistory[String(targetRound)];
+                    // (nums is safely initialized at the top of the loop now)
 
-                    if (nums && nums.length > 0) {
+                    if (nums && nums.length > 0 && nums[0] !== 0) {
                         // Separate Main (6) and Bonus (1)
                         // The 7th number is the bonus number in our JSON structure
                         const mainNums = nums.slice(0, 6).sort((a, b) => a - b);
@@ -5412,28 +5428,24 @@
                             ballsDiv.appendChild(ball);
                         });
 
-                        // Render Plus Sign
-                        const plusSpan = document.createElement('span');
-                        plusSpan.innerText = '+';
-                        plusSpan.style.color = '#999';
-                        plusSpan.style.fontSize = '12px';
-                        plusSpan.style.fontWeight = 'bold';
-                        plusSpan.style.margin = '0 2px';
-                        ballsDiv.appendChild(plusSpan);
+                        // Render Plus Icon
+                        const plusIcon = document.createElement('i');
+                        plusIcon.className = 'fas fa-plus';
+                        plusIcon.style.fontSize = '8px';
+                        plusIcon.style.color = '#999';
+                        plusIcon.style.margin = '0 2px';
+                        ballsDiv.appendChild(plusIcon);
 
-                        // Render Bonus Number
+                        // Render Bonus Ball
                         const bonusBall = document.createElement('span');
-                        bonusBall.className = 'mini-ball ' + getBallColor(bonusNum);
+                        bonusBall.className = 'mini-ball bonus-ball ' + getBallColor(bonusNum);
                         bonusBall.innerText = bonusNum;
                         ballsDiv.appendChild(bonusBall);
-
                     } else {
-                        const noData = document.createElement('span');
-                        noData.style.fontSize = '11px';
-                        noData.style.color = '#999';
-                        noData.innerText = '데이터 없음';
-                        ballsDiv.appendChild(noData);
+                        // Display fallback if history missing
+                        ballsDiv.innerHTML = '<span style="font-size:12px; color:#888; margin-left:5px;">업데이트 필요</span>';
                     }
+
 
                     row.appendChild(ballsDiv);
                     container.appendChild(row);
