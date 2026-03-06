@@ -3175,6 +3175,55 @@
             box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
             white-space: nowrap;
         }
+
+        /* V1.4 Dual Range Slider */
+        .multi-range-container {
+            position: relative;
+            width: 100%;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            margin: 12px 0 8px 0;
+        }
+
+        .slider-track {
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        .slider-fill {
+            position: absolute;
+            height: 6px;
+            background: linear-gradient(to right, #6b46c1, #4c1d95);
+            border-radius: 5px;
+            z-index: 2;
+        }
+
+        .multi-range-slider {
+            position: absolute;
+            width: 100%;
+            pointer-events: none;
+            -webkit-appearance: none;
+            background: transparent;
+            z-index: 3;
+            margin: 0;
+        }
+
+        .multi-range-slider::-webkit-slider-thumb {
+            pointer-events: all;
+            background: #fff;
+            border: 2px solid #5D31D4;
+            border-radius: 50%;
+            height: 20px;
+            width: 20px;
+            -webkit-appearance: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 
@@ -3220,20 +3269,19 @@
                     </div>
                     <div class="input-row"
                         style="display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%;">
-                        <input type="range" id="minRound" min="1" max="1213" value="1"
-                            style="width: 100%; -webkit-appearance: none; height: 6px; background: linear-gradient(to right, #5D31D4 0%, #ddd 0%); border-radius: 5px; outline: none; margin: 12px 0 8px 0;"
-                            oninput="
-                                let displayMode = (this.value <= 1) ? '전체' : 'Round ' + this.value;
-                                document.getElementById('minRoundDisplay').innerText = 'Selected: ' + displayMode; 
-                                let pct = ((this.value - this.min) / (this.max - this.min)) * 100;
-                                this.style.background = `linear-gradient(to right, #5D31D4 ${pct}%, #ddd ${pct}%)`;
-                            " onchange="applyFilters()">
+                        <div class="multi-range-container">
+                            <div class="slider-track"></div>
+                            <div class="slider-fill" id="sliderFill"></div>
+                            <input type="range" id="minRound" min="1" max="1213" value="1" class="multi-range-slider"
+                                oninput="updateDualSliderUI(); applyFilters();">
+                            <input type="range" id="maxRound" min="1" max="1213" value="1213" class="multi-range-slider"
+                                oninput="updateDualSliderUI(); applyFilters();">
+                        </div>
                         <div
                             style="display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: #888; font-weight: 500;">
                             <span>1</span>
                             <span>1213</span>
                         </div>
-                        <input type="hidden" id="maxRound" value="1213">
                     </div>
                     <div class="data-notice" style="display: block; width: 100%; margin: 0; box-sizing: border-box;">
                         1. 1등 당첨번호는 1회차부터 제공<br>
@@ -4092,6 +4140,49 @@
                         }
                     });
                 });
+
+                // Initialize dual slider visual state
+                setTimeout(updateDualSliderUI, 50);
+            }
+
+            function updateDualSliderUI() {
+                const minSlider = document.getElementById('minRound');
+                const maxSlider = document.getElementById('maxRound');
+                const fill = document.getElementById('sliderFill');
+                const display = document.getElementById('minRoundDisplay');
+
+                if (!minSlider || !maxSlider || !fill) return;
+
+                let minVal = parseInt(minSlider.value);
+                let maxVal = parseInt(maxSlider.value);
+
+                // Prevent crossing
+                if (minVal > maxVal) {
+                    if (document.activeElement === minSlider) {
+                        minVal = maxVal;
+                        minSlider.value = maxVal;
+                    } else {
+                        maxVal = minVal;
+                        maxSlider.value = minVal;
+                    }
+                }
+
+                // Update text display
+                display.innerText = `Selected: ${minVal} ~ ${maxVal}`;
+
+                // Update track gradient fill
+                const minRange = minSlider.max - minSlider.min;
+                const minPos = ((minVal - minSlider.min) / minRange) * 100;
+                const maxPos = ((maxVal - maxSlider.min) / minRange) * 100;
+
+                fill.style.left = `${minPos}%`;
+                fill.style.width = `${maxPos - minPos}%`;
+
+                // Max round changes recent rounds dashboard directly via applyFilters -> eventListener but this catches manual edits
+                const refSpan = document.getElementById('recentRefRound');
+                if (document.activeElement === maxSlider && refSpan && parseInt(refSpan.innerText) !== maxVal) {
+                    // let eventListener handle update if it triggered
+                }
             }
 
             function updateLegendIcons(baseUrl) {
