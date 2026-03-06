@@ -3179,11 +3179,13 @@
         /* V1.4 Dual Range Slider */
         .multi-range-container {
             position: relative;
-            width: 100%;
+            width: calc(100% - 10px);
+            /* Slightly reduced to prevent right edge cutoff on iPhone */
             height: 30px;
             display: flex;
             align-items: center;
-            margin: 12px 0 8px 0;
+            margin: 12px auto 8px auto;
+            /* Centered visually */
         }
 
         .slider-track {
