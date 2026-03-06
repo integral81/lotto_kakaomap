@@ -4437,9 +4437,16 @@
                     });
 
                     if (newStores.length > 0) {
-                        addNewMarkers(newStores);
+                        applyFilters();
                         const countEl = document.getElementById('totalDataCount');
                         if (countEl) countEl.innerText = allData.length;
+
+                        // Check if GPS Near Me is waiting for stores to load
+                        const toast = document.getElementById('nearby-shops-toast');
+                        if (toast && toast.className.includes('show')) {
+                            const center = map.getCenter();
+                            findNearestShop(center.getLat(), center.getLng(), "현재 위치", false);
+                        }
                     }
                 } catch (err) {
                     console.error('[Dynamic] Load failed:', err);
