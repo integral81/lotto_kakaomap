@@ -3198,7 +3198,8 @@
         .slider-fill {
             position: absolute;
             height: 6px;
-            background: linear-gradient(to right, #6b46c1, #4c1d95);
+            background: linear-gradient(to right, #FFD700, #D4AF37);
+            /* Gold gradient to match KINOV theme */
             border-radius: 5px;
             z-index: 2;
         }
@@ -4140,10 +4141,18 @@
                         }
                     });
                 });
-
                 // Initialize dual slider visual state
                 setTimeout(updateDualSliderUI, 50);
             }
+
+            // Expose updateRecentRounds externally mapped to the max slider
+            window.forceUpdateRecentRounds = function () {
+                const maxSlider = document.getElementById('maxRound');
+                if (maxSlider) {
+                    const val = parseInt(maxSlider.value);
+                    if (!isNaN(val)) updateRecentRounds(val);
+                }
+            };
 
             function updateDualSliderUI() {
                 const minSlider = document.getElementById('minRound');
@@ -4335,6 +4344,10 @@
                     });
                     window.lottoHistory = historyData;
                     localStorage.setItem('lottoHistoryCache', JSON.stringify(historyData));
+
+                    // Force refresh the recent rounds list now that history is loaded
+                    if (window.forceUpdateRecentRounds) window.forceUpdateRecentRounds();
+
                 } catch (err) {
                     console.warn('[Data] History fetch failed:', err.message);
                 }
