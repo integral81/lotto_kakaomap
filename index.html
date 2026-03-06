@@ -6831,18 +6831,9 @@
 
                     if (topShops.length > 0) {
                         const nearestDist = topShops[0].distance;
-                        if (nearestDist > 20) {
-                            if (shouldPan) {
-                                showToast(`현재 조건(회차)으로는<br>주변 20km 내에 1등 당첨점이 없습니다.<br><span
-                                                        style="font-size:12px; color:#ccc;">(가장 가까운 곳:
-                                                        ${topShops[0].marker.shopData.n}
-                                                        ${nearestDist.toFixed(1)}km)</span>`, "info", true,
-                                    'nearby-shops-toast');
-
-                                const center = new kakao.maps.LatLng(lat, lng);
-                                map.panTo(center);
-                            }
-                            return;
+                        if (shouldPan) {
+                            const center = new kakao.maps.LatLng(lat, lng);
+                            map.panTo(center);
                         }
 
                         // Clear lingering toasts from previous failure checks
