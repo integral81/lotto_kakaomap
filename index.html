@@ -4442,13 +4442,13 @@
                         applyFilters();
                         const countEl = document.getElementById('totalDataCount');
                         if (countEl) countEl.innerText = allData.length;
+                    }
 
-                        // Check if GPS Near Me is waiting for stores to load
-                        const toast = document.getElementById('nearby-shops-toast');
-                        if (toast && toast.className.includes('show')) {
-                            const center = map.getCenter();
-                            findNearestShop(center.getLat(), center.getLng(), "현재 위치", false);
-                        }
+                    // Check if GPS Near Me is waiting for stores to load or map to pan
+                    if (window.pendingGpsNearMe) {
+                        const p = window.pendingGpsNearMe;
+                        window.pendingGpsNearMe = null;
+                        findNearestShop(p.lat, p.lng, "내 위치", false);
                     }
                 } catch (err) {
                     console.error('[Dynamic] Load failed:', err);
@@ -5779,7 +5779,8 @@
                         }
 
                         // 3. Find nearest shop (complex logic last)
-                        findNearestShop(lat, lng);
+                        // Trigger async processing after map pans and idle event fires
+                        window.pendingGpsNearMe = { lat, lng };
 
                     } catch (e) {
                         console.error("[GPS] Success Callback Error:", e);
