@@ -5557,11 +5557,6 @@
                         }
                     });
 
-                    // Listen for native close event (e.g. X button)
-                    kakao.maps.event.addListener(infowindow, 'close', function () {
-                        document.body.classList.remove('iw-open');
-                    });
-
                     markers.push(marker);
                 });
                 clusterer.addMarkers(markers);
