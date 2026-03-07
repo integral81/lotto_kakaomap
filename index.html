@@ -4130,8 +4130,10 @@
 
                 // Initial load of recent rounds
                 const maxSlider = document.getElementById('maxRound');
-                if (maxSlider) {
+                const minSlider = document.getElementById('minRound');
+                if (maxSlider && minSlider) {
                     maxSlider.max = trueLatestRound;
+                    minSlider.max = trueLatestRound;
                     maxSlider.value = trueLatestRound;
                     const rangeLabel = document.getElementById('maxRoundLabel');
                     if (rangeLabel) {
