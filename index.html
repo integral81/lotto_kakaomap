@@ -4133,7 +4133,10 @@
                 if (maxSlider) {
                     maxSlider.max = trueLatestRound;
                     maxSlider.value = trueLatestRound;
-                    document.querySelector('.range-labels span:last-child').innerText = trueLatestRound;
+                    const rangeLabel = document.querySelector('.range-labels span:last-child');
+                    if (rangeLabel) {
+                        rangeLabel.innerText = trueLatestRound;
+                    }
                     updateRecentRounds(trueLatestRound);
                 }
 
