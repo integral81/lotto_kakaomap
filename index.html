@@ -4119,11 +4119,22 @@
 
             // Centralized UI Initialization
             function initUI() {
+                // Determine the true latest round from fetched history
+                let trueLatestRound = 1213;
+                if (window.lottoHistory) {
+                    const rounds = Object.keys(window.lottoHistory).map(Number).filter(n => !isNaN(n));
+                    if (rounds.length > 0) {
+                        trueLatestRound = Math.max(...rounds);
+                    }
+                }
+
                 // Initial load of recent rounds
                 const maxSlider = document.getElementById('maxRound');
                 if (maxSlider) {
-                    const initialMax = parseInt(maxSlider.value) || 1213;
-                    updateRecentRounds(initialMax);
+                    maxSlider.max = trueLatestRound;
+                    maxSlider.value = trueLatestRound;
+                    document.querySelector('.range-labels span:last-child').innerText = trueLatestRound;
+                    updateRecentRounds(trueLatestRound);
                 }
 
                 // --- Add Real-time Event Listeners ---
