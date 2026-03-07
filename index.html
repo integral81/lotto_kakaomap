@@ -3283,7 +3283,7 @@
                         <div
                             style="display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: #888; font-weight: 500;">
                             <span>1</span>
-                            <span>1213</span>
+                            <span id="maxRoundLabel">1213</span>
                         </div>
                     </div>
                     <div class="data-notice" style="display: block; width: 100%; margin: 0; box-sizing: border-box;">
@@ -4133,7 +4133,7 @@
                 if (maxSlider) {
                     maxSlider.max = trueLatestRound;
                     maxSlider.value = trueLatestRound;
-                    const rangeLabel = document.querySelector('.range-labels span:last-child');
+                    const rangeLabel = document.getElementById('maxRoundLabel');
                     if (rangeLabel) {
                         rangeLabel.innerText = trueLatestRound;
                     }
