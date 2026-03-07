@@ -44,13 +44,13 @@ def fetch_winning_numbers_naver(draw_no):
         r = requests.get(url, headers=NAVER_HEADERS, timeout=15)
         soup = BeautifulSoup(r.text, "html.parser")
         text = soup.get_text(separator=" ")
-        pattern = r'당첨번호[^\d]*(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})'
-        m = re.search(pattern, text)
-        if m:
+        pattern = r'(?:당첨번호|당첨 번호|당첨|로또)[^\d]*(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})'
+        for m in re.finditer(pattern, text):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
+                search_region = text[max(0, m.start()-100) : m.end()+200]
                 bonus_pattern = r'보너스[^\d]*(\d{1,2})'
-                bm = re.search(bonus_pattern, text[m.start():m.start()+200])
+                bm = re.search(bonus_pattern, search_region)
                 if bm:
                     bonus = int(bm.group(1))
                     if 1 <= bonus <= 45 and bonus not in nums:
@@ -70,10 +70,17 @@ def fetch_winning_numbers_google(draw_no):
         r = requests.get(url, headers=google_headers, timeout=15)
         soup = BeautifulSoup(r.text, "html.parser")
         text = soup.get_text(separator=" ")
-        pattern = r'(\d{1,2})[,\s]+(\d{1,2})[,\s]+(\d{1,2})[,\s]+(\d{1,2})[,\s]+(\d{1,2})[,\s]+(\d{1,2})'
+        pattern = r'(?:당첨번호|당첨 번호|당첨|로또)[^\d]*(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})'
         for m in re.finditer(pattern, text):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
+                search_region = text[max(0, m.start()-100) : m.end()+200]
+                bonus_pattern = r'보너스[^\d]*(\d{1,2})'
+                bm = re.search(bonus_pattern, search_region)
+                if bm:
+                    bonus = int(bm.group(1))
+                    if 1 <= bonus <= 45 and bonus not in nums:
+                        nums.append(bonus)
                 print(f"[Google] 당첨번호 추출 성공: {nums}")
                 return nums
     except Exception as e:
@@ -109,21 +116,6 @@ def fetch_stores_naver(draw_no):
             print(f"[Naver stores] 검색 실패: {e}")
         time.sleep(random.uniform(1.5, 3.0))
     return records
-
-def fetch_stores_from_dhlottery_api(draw_no):
-    url = f"https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={draw_no}"
-    try:
-        r = requests.get(url, headers=NAVER_HEADERS, timeout=10)
-        data = r.json()
-        if data.get("returnValue") == "success":
-            nums = [data.get(f"drwtNo{i}") for i in range(1, 7)]
-            bonus = data.get("bnusNo")
-            if bonus:
-                nums.append(bonus)
-            print(f"[DH API] 당첨번호 추출 성공: {nums}")
-            return nums
-    except: pass
-    return None
 
 def fetch_stores_naver_news(draw_no):
     records = []
@@ -235,7 +227,7 @@ def save_to_supabase(target_round, winning_nums, records):
             
         store_data = {
             "name": rec["n"], "address": address,
-            "lat": float(rec.get("lat", 0)), "lng": float(rec.get("lng", 0)),
+            "lat": float(rec.get("lat") or 0.0), "lng": float(rec.get("lng") or 0.0),
             "is_online": rec.get("isOnline", False), "verified": rec.get("verified", False)
         }
         url = f"{SUPABASE_URL}/rest/v1/lotto_stores?on_conflict=name,address"
@@ -265,10 +257,7 @@ def run_update(target_round):
     print(f"[Update] {target_round}회 업데이트 시작 - {datetime.now().strftime('%H:%M:%S KST')}")
     print(f"{'='*50}")
     
-    winning_nums = fetch_stores_from_dhlottery_api(target_round)
-    if not winning_nums:
-        time.sleep(random.uniform(2, 4))
-        winning_nums = fetch_winning_numbers_naver(target_round)
+    winning_nums = fetch_winning_numbers_naver(target_round)
     if not winning_nums:
         time.sleep(random.uniform(2, 4))
         winning_nums = fetch_winning_numbers_google(target_round)
