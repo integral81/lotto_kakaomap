@@ -6743,10 +6743,23 @@
                     html5QrCode = new Html5Qrcode("qr-reader");
                 }
 
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                const config = {
+                    fps: 15,
+                    qrbox: { width: 300, height: 300 },
+                    aspectRatio: 1.0,
+                    rememberLastUsedCamera: true
+                };
 
-                // Start Camera (Prefer Environment)
-                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                // Advanced video constraints for better focus
+                const videoConstraints = {
+                    facingMode: "environment",
+                    focusMode: "continuous",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                };
+
+                // Start Camera
+                html5QrCode.start(videoConstraints, config, onScanSuccess)
                     .catch(err => {
                         console.error("Error starting QR scanner", err);
                         alert("카메라를 실행할 수 없습니다. 권한을 확인해주세요.\n" + err);
@@ -6809,10 +6822,26 @@
                     const v = urlObj.searchParams.get('v');
                     if (!v) throw new Error("QR 데이터 파싱 실패 (v param missing)");
 
-                    // Format: ROUND + 'm' + NUMBERS...
-                    const parts = v.split('m');
-                    const round = parseInt(parts[0]);
-                    const rawNumbers = parts[1];
+                    // Format: ROUND + 'm' + NUMBERS... 
+                    // Fallback for different delimiters (m, n, or direct concat)
+                    let round, rawNumbers;
+                    if (v.includes('m')) {
+                        const parts = v.split('m');
+                        round = parseInt(parts[0]);
+                        rawNumbers = parts[1];
+                    } else if (v.includes('n')) {
+                        const parts = v.split('n');
+                        round = parseInt(parts[0]);
+                        rawNumbers = parts[1];
+                    } else {
+                        // Some older versions might have 4 digits for round then numbers
+                        round = parseInt(v.substring(0, 4));
+                        rawNumbers = v.substring(4);
+                    }
+
+                    if (!rawNumbers) {
+                        throw new Error("번호 데이터를 추출할 수 없습니다. (Invalid data format)");
+                    }
 
                     document.getElementById('qrRound').innerText = round;
 
