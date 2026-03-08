@@ -3727,7 +3727,7 @@
                     onclick="closeQRScanner()">&times;</span>
 
                 <div id="qr-reader" style="width:100%; position:relative;">
-                    <!-- Custom Visual Guide (Purely decorative to avoid library cropping issues) -->
+                    <!-- Custom Visual Guide -->
                     <div id="qr-visual-guide"
                         style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:70%; height:70%; border:2px solid #fff; border-radius:15px; box-shadow:0 0 0 4000px rgba(0,0,0,0.5); z-index:10; pointer-events:none; border-style:dashed;">
                         <div
@@ -3745,9 +3745,26 @@
                     </div>
                 </div>
 
-                <div id="qr-debug-log"
-                    style="font-size:10px; padding:10px; background:#f0f0f0; border-top:1px solid #ddd; max-height:100px; overflow-y:auto; font-family:monospace; color:#444;">
-                    [Scanner Status] Waiting for camera...
+                <!-- Debug & Control Panel -->
+                <div id="qr-control-panel"
+                    style="padding:10px; background:#f8f9fa; border-top:1px solid #eee; display:flex; flex-direction:column; gap:10px;">
+                    <div id="qr-debug-log"
+                        style="font-size:10px; background:#eee; padding:5px; border-radius:4px; font-family:monospace; color:#666;">
+                        [Scanner Status] 카메라 대기 중...
+                    </div>
+
+                    <div style="display:flex; justify-content:center; gap:8px;">
+                        <button id="btn-torch" class="btn-sm" style="background:#666; display:none;"
+                            onclick="toggleFlash()">🔦 플래시 켜기</button>
+                        <button id="btn-upload-trigger" class="btn-sm" style="background:#0288d1;"
+                            onclick="document.getElementById('qr-file-input').click()">📸 사진 올려서 인식</button>
+                        <input type="file" id="qr-file-input" accept="image/*" style="display:none;"
+                            onchange="handleFileSelect(event)">
+                    </div>
+
+                    <div style="font-size:11px; color:#d32f2f; text-align:center; font-weight:bold;">
+                        인식이 잘 안되나요? 위 '사진 올려서 인식' 버튼을 눌러 촬영해 보세요!
+                    </div>
                 </div>
 
                 <div id="qrResult" class="qr-result-container" style="display:none;">
@@ -6780,8 +6797,55 @@
             function qrLog(msg) {
                 const logEl = document.getElementById('qr-debug-log');
                 if (logEl) {
-                    logEl.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
-                    console.log(`[QR LOG] ${msg}`);
+                    logEl.innerText = `[LOG] ${msg}`;
+                    console.log(`[QR] ${msg}`);
+                }
+            }
+
+            let isTorchOn = false;
+            async function toggleFlash() {
+                try {
+                    const video = document.querySelector('#qr-reader video');
+                    if (video && video.srcObject) {
+                        const track = video.srcObject.getVideoTracks()[0];
+                        const caps = track.getCapabilities();
+                        if (caps.torch) {
+                            isTorchOn = !isTorchOn;
+                            await track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+                            const btn = document.getElementById('btn-torch');
+                            btn.innerText = isTorchOn ? "🔦 플래시 끄기" : "🔦 플래시 켜기";
+                            btn.style.background = isTorchOn ? "#ff9800" : "#666";
+                        } else {
+                            qrLog("Flash not supported.");
+                        }
+                    }
+                } catch (e) {
+                    qrLog("Flash error: " + e.message);
+                }
+            }
+
+            async function handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                qrLog("파일 분석 중...");
+                document.getElementById('qr-visual-guide').style.display = 'none';
+
+                try {
+                    if (!html5QrCode) {
+                        html5QrCode = new Html5Qrcode("qr-reader");
+                    }
+
+                    if (html5QrCode.isScanning) {
+                        await html5QrCode.stop();
+                    }
+
+                    const result = await html5QrCode.scanFile(file, true);
+                    onScanSuccess(result);
+                } catch (err) {
+                    qrLog("인식 실패. 더 선명한 사진 필요.");
+                    alert("사진에서 QR 코드를 찾을 수 없습니다.\n더 선명하게 다시 찍어서 올려주세요.");
+                    document.getElementById('qr-visual-guide').style.display = 'block';
                 }
             }
 
@@ -6789,55 +6853,64 @@
                 closeNav();
                 const modal = document.getElementById('qrModal');
                 modal.style.display = 'flex';
-                qrLog("Initializing...");
+                qrLog("연결 중...");
 
                 document.getElementById('qrResult').style.display = 'none';
                 document.getElementById('qr-reader').style.display = 'block';
+                document.getElementById('qr-visual-guide').style.display = 'block';
+                document.getElementById('btn-torch').style.display = 'none';
 
                 try {
                     if (!html5QrCode) {
-                        html5QrCode = new Html5Qrcode("qr-reader");
+                        html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
                     }
 
                     const config = {
                         fps: 20,
                         useBarCodeDetectorIfSupported: true,
-                        // [V1.5.5 Fix]: Remove 'qrbox'. By removing qrbox, the library scans the FULL video frame.
-                        // This uses 100% of available pixels for decoding, which is critical for high-density QRs.
+                        videoConstraints: {
+                            facingMode: "environment",
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 }
+                        },
                         aspectRatio: 1.0,
                         rememberLastUsedCamera: true
                     };
 
                     const cameras = await Html5Qrcode.getCameras();
-                    qrLog(`Cameras: ${cameras.length}`);
-
                     const backCamera = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[cameras.length - 1];
                     const cameraId = backCamera ? backCamera.id : { facingMode: "environment" };
 
                     await html5QrCode.start(cameraId, config, onScanSuccess);
-                    qrLog("Scanning active (Full Frame)");
+                    qrLog("모드: 라이브 (FHD)");
 
-                    // Attempt focus optimization
+                    // Setup Flash & Focus
                     try {
                         const video = document.querySelector('#qr-reader video');
                         if (video && video.srcObject) {
                             const track = video.srcObject.getVideoTracks()[0];
-                            const settings = track.getSettings();
-                            qrLog(`Res: ${settings.width}x${settings.height}`);
-                            if (track.getCapabilities().focusMode?.includes('continuous')) {
+                            const caps = track.getCapabilities();
+
+                            if (caps.torch) {
+                                document.getElementById('btn-torch').style.display = 'inline-block';
+                                isTorchOn = false;
+                            }
+
+                            if (caps.focusMode?.includes('continuous')) {
                                 await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-                                qrLog("Auto-focus enabled");
+                                qrLog("포커스: 자동 최적화");
                             }
                         }
                     } catch (e) { }
 
                 } catch (err) {
-                    qrLog(`Error: ${err}`);
-                    console.error("Error starting QR scanner", err);
-                    alert("카메라를 실행할 수 없습니다.\n" + err);
+                    qrLog(`Err: ${err}`);
+                    console.error("Camera error", err);
+                    alert("카메라 실행 오류: " + err);
                     closeQRScanner();
                 }
             }
+
 
             function closeQRScanner() {
                 const modal = document.getElementById('qrModal');
