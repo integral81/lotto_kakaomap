@@ -3179,13 +3179,16 @@
         /* V1.4 Dual Range Slider */
         .multi-range-container {
             position: relative;
-            width: calc(100% - 10px);
-            /* Slightly reduced to prevent right edge cutoff on iPhone */
+            width: 100%;
+            /* Use full width of parent */
+            padding: 0 10px;
+            /* Add padding so 20px thumbs don't overflow edges */
+            box-sizing: border-box;
             height: 30px;
             display: flex;
             align-items: center;
-            margin: 12px auto 8px auto;
-            /* Centered visually */
+            margin: 12px 0 8px 0;
+            /* Reset auto margin, use padding for spacing */
         }
 
         .slider-track {
@@ -4168,6 +4171,45 @@
 
                 // Initialize dual slider visual state initially
                 setTimeout(updateDualSliderUI, 50);
+
+                // [V1.5.3 Fix]: Click-to-move functionality for easier mobile adjustment
+                const sliderContainer = document.querySelector('.multi-range-container');
+                if (sliderContainer) {
+                    sliderContainer.addEventListener('mousedown', (e) => {
+                        const rect = sliderContainer.getBoundingClientRect();
+                        const percent = (e.clientX - rect.left) / rect.width;
+                        const value = Math.round(minSlider.min + percent * (minSlider.max - minSlider.min));
+
+                        const distMin = Math.abs(value - parseInt(minSlider.value));
+                        const distMax = Math.abs(value - parseInt(maxSlider.value));
+
+                        if (distMin < distMax) {
+                            minSlider.value = value;
+                        } else {
+                            maxSlider.value = value;
+                        }
+                        updateDualSliderUI();
+                        applyFilters();
+                    });
+                    // Touch support for mobile
+                    sliderContainer.addEventListener('touchstart', (e) => {
+                        const rect = sliderContainer.getBoundingClientRect();
+                        const touch = e.touches[0];
+                        const percent = (touch.clientX - rect.left) / rect.width;
+                        const value = Math.round(minSlider.min + percent * (minSlider.max - minSlider.min));
+
+                        const distMin = Math.abs(value - parseInt(minSlider.value));
+                        const distMax = Math.abs(value - parseInt(maxSlider.value));
+
+                        if (distMin < distMax) {
+                            minSlider.value = value;
+                        } else {
+                            maxSlider.value = value;
+                        }
+                        updateDualSliderUI();
+                        applyFilters();
+                    }, { passive: true });
+                }
             }
 
             // Expose updateRecentRounds externally mapped to the max slider
@@ -4403,6 +4445,26 @@
                 // 3. Setup Dynamic Viewport Loading
                 if (map) {
                     kakao.maps.event.addListener(map, 'idle', throttle(loadVisibleMarkers, 300));
+
+                    // [V1.2 Enhancement]: Load ALL winners for the latest round immediately 
+                    // bypassing the aggregated view which might be stale.
+                    const latestR = Math.max(...Object.keys(window.lottoHistory).map(Number));
+                    if (latestR > 0) {
+                        try {
+                            const params = `?round=eq.${latestR}&select=*,lotto_stores(*)`;
+                            const winners = await supabaseFetchAll('lotto_winners', params);
+                            if (winners && winners.length > 0) {
+                                const storeData = winners.map(w => ({
+                                    ...w.lotto_stores,
+                                    rounds: [{ r: w.round, m: w.method, w_id: w.id }]
+                                }));
+                                processNewStores(storeData);
+                            }
+                        } catch (e) {
+                            console.warn('[Data] Initial direct winners fetch failed:', e.message);
+                        }
+                    }
+
                     loadVisibleMarkers();
                 }
                 console.log('[Data] Initial UI ready.');
@@ -4421,40 +4483,9 @@
                 const params = `?lat=gte.${sw.getLat() - 0.01}&lat=lte.${ne.getLat() + 0.01}&lng=gte.${sw.getLng() - 0.01}&lng=lte.${ne.getLng() + 0.01}`;
 
                 try {
-                    const storeRows = await supabaseFetchAll('vw_lotto_store_stats', params);
-                    const newStores = [];
+                    processNewStores(storeRows);
 
-                    storeRows.forEach(store => {
-                        const key = `${store.id}`;
-                        if (loadedStoreKeys.has(key)) return;
-
-                        let rounds = store.rounds || [];
-                        if (!rounds || (rounds.length === 1 && rounds[0] === null)) return;
-                        rounds = rounds.filter(r => r !== null);
-                        if (rounds.length === 0) return;
-
-                        const latestRound = Math.max(...rounds.map(r => r.r));
-                        const item = {
-                            id: store.id,
-                            n: store.name,
-                            a: store.address,
-                            lat: store.lat,
-                            lng: store.lng,
-                            w: store.total_wins,
-                            totalWins: store.total_wins,
-                            r: latestRound,
-                            rounds: rounds,
-                            m: rounds[0].m || '정보없음'
-                        };
-                        if (store.is_online) item.isOnline = true;
-                        if (store.verified) item.verified = true;
-
-                        newStores.push(item);
-                        allData.push(item);
-                        loadedStoreKeys.add(key);
-                    });
-
-                    if (newStores.length > 0) {
+                    if (newStoresFound) {
                         applyFilters();
                         const countEl = document.getElementById('totalDataCount');
                         if (countEl) countEl.innerText = allData.length;
@@ -4469,6 +4500,67 @@
                 } catch (err) {
                     console.error('[Dynamic] Load failed:', err);
                 }
+            }
+
+            let newStoresFound = false;
+            function processNewStores(storeRows) {
+                newStoresFound = false;
+                if (!storeRows) return;
+                storeRows.forEach(store => {
+                    const key = `${store.id}`;
+
+                    // [V1.2 Fix]: Use a more robust merging that allows multiple winners for the same round.
+                    // The 'vw_lotto_store_stats' view already returns the complete aggregated list.
+                    // [V1.2 Fix]: Improved merging that correctly handles multiple winners in the SAME round.
+                    if (loadedStoreKeys.has(key)) {
+                        const existing = allData.find(d => d.id === store.id);
+                        if (existing && store.rounds) {
+                            let merged = false;
+                            store.rounds.forEach(newRnd => {
+                                // [V1.2 Fix]: Allow multiple winners in the same round.
+                                const alreadyHas = existing.rounds.some(r =>
+                                    (newRnd.w_id && r.w_id === newRnd.w_id) ||
+                                    (!newRnd.w_id && r.r === newRnd.r && r.m === newRnd.m)
+                                );
+                                if (!alreadyHas) {
+                                    existing.rounds.push(newRnd);
+                                    merged = true;
+                                }
+                            });
+                            if (merged) {
+                                existing.totalWins = Math.max(existing.totalWins, store.total_wins || 0, existing.rounds.length);
+                                existing.r = Math.max(existing.r, ...existing.rounds.map(r => r.r));
+                                newStoresFound = true;
+                            }
+                        }
+                        return;
+                    }
+
+                    let rounds = store.rounds || [];
+                    if (!rounds || (rounds.length === 1 && rounds[0] === null)) return;
+                    rounds = rounds.filter(r => r !== null);
+                    if (rounds.length === 0) return;
+
+                    const latestRound = Math.max(...rounds.map(r => r.r));
+                    const item = {
+                        id: store.id,
+                        n: store.name,
+                        a: store.address,
+                        lat: store.lat,
+                        lng: store.lng,
+                        w: store.total_wins,
+                        totalWins: store.total_wins,
+                        r: latestRound,
+                        rounds: rounds,
+                        m: (rounds.find(rn => rn.r === latestRound) || {}).m || '정보없음'
+                    };
+                    if (store.is_online) item.isOnline = true;
+                    if (store.verified) item.verified = true;
+
+                    allData.push(item);
+                    loadedStoreKeys.add(key);
+                    newStoresFound = true;
+                });
             }
 
             function addNewMarkers(newStores) {
@@ -5059,9 +5151,31 @@
             }
             // =====================================
 
-            function applyFilters() {
+            async function applyFilters() {
                 const minR = parseInt(document.getElementById('minRound').value) || 0;
                 const maxR = parseInt(document.getElementById('maxRound').value) || 9999;
+
+                // [V1.2 Enhancement]: In narrow range selection (like 1214~1214), 
+                // fetch individual winners directly to ensure 100% accuracy.
+                if ((maxR - minR) <= 2) {
+                    try {
+                        let query = `?select=*,lotto_stores(*)&round=in.(${maxR}`;
+                        if (minR !== maxR) query += `,${minR}`;
+                        query += `)`;
+
+                        const rangeWinners = await supabaseFetchAll('lotto_winners', query);
+                        if (rangeWinners && rangeWinners.length > 0) {
+                            const storeData = rangeWinners.map(w => ({
+                                ...w.lotto_stores,
+                                rounds: [{ r: w.round, m: w.method, w_id: w.id }]
+                            }));
+                            processNewStores(storeData);
+                        }
+                    } catch (e) {
+                        console.warn('[Filters] Dynamic direct winners fetch failed:', e.message);
+                    }
+                }
+
                 const auto = document.getElementById('methodAuto').checked;
                 const manual = document.getElementById('methodManual').checked;
                 const semi = document.getElementById('methodSemi').checked;
@@ -5504,18 +5618,15 @@
                     if (d.pov && !uniqueShops[key].pov) uniqueShops[key].pov = d.pov;
                     if (d.customMessage && !uniqueShops[key].customMessage) uniqueShops[key].customMessage = d.customMessage;
 
-                    // IF the data item already has a detailed 'rounds' array (from Tiers 1-4 sync), use it!
+                    // IF the data item already has a detailed 'rounds' array, use it!
                     if (d.rounds && Array.isArray(d.rounds) && d.rounds.length > 0) {
                         d.rounds.forEach(rnd => {
-                            if (!uniqueShops[key].rounds.some(existing => existing.r === rnd.r)) {
-                                uniqueShops[key].rounds.push(rnd);
-                            }
+                            // [V1.2 Fix]: REMOVED .some() check to allow multiple winners in the same round.
+                            uniqueShops[key].rounds.push(rnd);
                         });
                     } else if (d.r) {
                         // Fallback for flat legacy data
-                        if (!uniqueShops[key].rounds.some(existing => existing.r === d.r)) {
-                            uniqueShops[key].rounds.push({ r: d.r, m: d.m || "정보없음" });
-                        }
+                        uniqueShops[key].rounds.push({ r: d.r, m: d.m || "정보없음" });
                     }
 
                     // Final safety for totalWins
@@ -5537,6 +5648,13 @@
 
                 const sortedShops = Object.values(uniqueShops).sort((a, b) => tierRank(a) - tierRank(b));
 
+                const minR = parseInt(document.getElementById('minRound').value) || 0;
+                const maxR = parseInt(document.getElementById('maxRound').value) || 9999;
+                const auto = document.getElementById('methodAuto') ? document.getElementById('methodAuto').checked : true;
+                const manual = document.getElementById('methodManual') ? document.getElementById('methodManual').checked : true;
+                const semi = document.getElementById('methodSemi') ? document.getElementById('methodSemi').checked : true;
+                const site = document.getElementById('methodSite') ? document.getElementById('methodSite').checked : true;
+
                 sortedShops.forEach(shop => {
                     let markerImg = null;
                     const baseUrl = window.currentBaseUrl || './';
@@ -5549,157 +5667,174 @@
                     const ICON_CLOSED = 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%239e9e9e"/><path fill="white" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
 
                     if (shop.totalWins >= 10) {
-                        // Tier 1: Red Gem (64x72)
-                        markerImg = new kakao.maps.MarkerImage(ICON_TIER1, new kakao.maps.Size(64, 72), {
-                            offset: new kakao.maps.Point(32, 72)
-                        });
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER1, new kakao.maps.Size(64, 72), { offset: new kakao.maps.Point(32, 72) });
                     } else if (shop.totalWins >= 5) {
-                        // Tier 2: Gold Shield (58x64)
-                        markerImg = new kakao.maps.MarkerImage(ICON_TIER2, new kakao.maps.Size(58, 64), {
-                            offset: new kakao.maps.Point(29, 64)
-                        });
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER2, new kakao.maps.Size(58, 64), { offset: new kakao.maps.Point(29, 64) });
                     } else if (shop.totalWins >= 3) {
-                        // Tier 3: Blue Gem (52x64) - Widened from 42x72
-                        markerImg = new kakao.maps.MarkerImage(ICON_TIER3, new kakao.maps.Size(52, 64), {
-                            offset: new kakao.maps.Point(26, 64)
-                        });
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER3, new kakao.maps.Size(52, 64), { offset: new kakao.maps.Point(26, 64) });
                     } else {
-                        // Tier 4: Silver Pin (52x64) - Widened from 42x72
-                        markerImg = new kakao.maps.MarkerImage(ICON_TIER4, new kakao.maps.Size(52, 64), {
-                            offset: new kakao.maps.Point(26, 64)
-                        });
+                        markerImg = new kakao.maps.MarkerImage(ICON_TIER4, new kakao.maps.Size(52, 64), { offset: new kakao.maps.Point(26, 64) });
                     }
 
                     if (shop.closed) {
                         markerImg = new kakao.maps.MarkerImage(ICON_CLOSED, new kakao.maps.Size(24, 24));
                     }
 
-                    const marker = new kakao.maps.Marker({
-                        position: new kakao.maps.LatLng(shop.lat, shop.lng),
-                        image: markerImg
+                    // [V1.2 Enhancement]: Clusterer displays winner count, not shop count.
+                    // We filter the shop's rounds by the current selection and create a marker for each.
+                    const matchingRounds = shop.rounds.filter(rnd => {
+                        const r = rnd.r;
+                        const m = rnd.m || '';
+
+                        // Round check
+                        if (r < minR || r > maxR) return false;
+
+                        // Method check
+                        // [V1.2 Fix]: Bulletproof Online Check - If store name contains '동행복권', skip granular method check and use 'site' filter.
+                        if (shop.isOnline || (shop.n && shop.n.includes('동행복권'))) {
+                            return site;
+                        }
+
+                        if (m === '사이트') return site;
+                        if (m.includes('자동') && !m.includes('반자동')) return auto;
+                        if (m.includes('수동')) return manual;
+                        if (m.includes('반자동')) return semi;
+
+                        return true; // Default show if method unknown but round matches
                     });
-                    marker.shopData = shop; // Store shop data for retrieval
 
-                    const sortedRounds = shop.rounds.sort((a, b) => b.r - a.r);
-                    let roundTagsHtml = sortedRounds.map(r => `<span class="iw-tag">${r.r}회(${r.m})</span>`).join('');
-
-                    if (shop.closed) {
-                        roundTagsHtml = `<span class="iw-tag" style="background:#ff5252; color:white; font-weight:bold;">⛔ 폐업/휴업</span>` + roundTagsHtml;
+                    // [Debug Log] Monitor round 1214 markers in console
+                    if (matchingRounds.some(rnd => rnd.r === 1214)) {
+                        console.log(`[1214 Debug] Store: ${shop.n}, Matches found: ${matchingRounds.filter(rnd => rnd.r === 1214).length}`);
                     }
 
-                    // Helper to format address for mobile: break after the street number
-                    const formatAddrForMobile = (addr) => {
-                        if (!addr) return "";
-                        // Regex: Find the first sequence of digits followed by a space and insert mobile-only BR
-                        return addr.replace(/(\d+)\s/, '$1<br class="mobile-br"> ');
-                    };
-                    const displayAddr = formatAddrForMobile(shop.a);
+                    // If no rounds match the range (could happen with ' 명당 상시 노출' logic), 
+                    // we still show 1 marker if precisely it's a high win shop and we are in wide range.
+                    const isHighWinShop = (shop.totalWins >= 10);
+                    const isNarrowRange = (maxR - minR) <= 10;
+                    const shouldForceShow = !isNarrowRange && isHighWinShop && matchingRounds.length === 0;
 
-                    const safeAddr = (shop.a || "").replace(/'/g, "\\'").replace(/\n/g, " ");
-                    const safeName = (shop.n || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+                    const markerCount = shouldForceShow ? 1 : matchingRounds.length;
 
-                    const getLegendIcon = (wins) => {
-                        if (wins >= 10) return ICON_TIER1;
-                        if (wins >= 5) return ICON_TIER2;
-                        if (wins >= 3) return ICON_TIER3;
-                        return ICON_TIER4;
-                    };
+                    for (let i = 0; i < markerCount; i++) {
+                        // [V1.2 Fix]: Add microscopic offset (wobble) so Kakao Clusterer counts them as distinct markers
+                        // Increased to 0.0001 (~10m) for absolute certainty.
+                        const wobble = i * 0.0001;
+                        const marker = new kakao.maps.Marker({
+                            position: new kakao.maps.LatLng(shop.lat + wobble, shop.lng + wobble),
+                            image: markerImg,
+                            zIndex: i === 0 ? 10 : 1 // First marker is principal
+                        });
+                        marker.shopData = shop;
 
-                    const maxVisible = window.innerWidth <= 640 ? 3 : 5;
+                        // Only attach click listener to the FIRST marker of this shop
+                        if (i === 0) {
+                            const sortedRounds = shop.rounds.sort((a, b) => b.r - a.r);
+                            let roundTagsHtml = sortedRounds.map(r => `<span class="iw-tag">${r.r}회(${r.m})</span>`).join('');
 
-                    const content = `
-                    <div class="infowindow">
-                        <div class="iw-title">
-                            ${shop.n} 
-                            <img src="${getLegendIcon(shop.totalWins)}" class="iw-legend-icon">
-                            ${shop.closed ? '<span style="font-size:12px; color:red;">(폐업)</span>' : ''}
-                        </div>
-                        <div class="iw-addr-box" onclick="copyToClipboard('${safeAddr}')" title="주소 복사하기">
-                            <span class="iw-addr">${displayAddr}</span>
-                            <span class="btn-copy-label">복사</span>
-                        </div>
-                        <div style="font-weight:bold; color:red; margin-bottom:5px; font-size:13px;">총 ${shop.totalWins}회 당첨</div>
-                        <div class="iw-details-wrapper">
-                            <div class="iw-details ${shop.totalWins > maxVisible ? 'collapsed' : ''}" id="iw-details-${shop.lat}-${shop.lng}">
-                                ${roundTagsHtml}
+                            if (shop.closed) {
+                                roundTagsHtml = `<span class="iw-tag" style="background:#ff5252; color:white; font-weight:bold;">⛔ 폐업/휴업</span>` + roundTagsHtml;
+                            }
+
+                            const formatAddrForMobile = (addr) => {
+                                if (!addr) return "";
+                                return addr.replace(/(\d+)\s/, '$1<br class="mobile-br"> ');
+                            };
+                            const displayAddr = formatAddrForMobile(shop.a);
+                            const safeAddr = (shop.a || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+                            const safeName = (shop.n || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+
+                            const getLegendIcon = (wins) => {
+                                if (wins >= 10) return ICON_TIER1;
+                                if (wins >= 5) return ICON_TIER2;
+                                if (wins >= 3) return ICON_TIER3;
+                                return ICON_TIER4;
+                            };
+
+                            const maxVisible = window.innerWidth <= 640 ? 3 : 5;
+
+                            const content = `
+                            <div class="infowindow">
+                                <div class="iw-title">
+                                    ${shop.n} 
+                                    <img src="${getLegendIcon(shop.totalWins)}" class="iw-legend-icon">
+                                    ${shop.closed ? '<span style="font-size:12px; color:red;">(폐업)</span>' : ''}
+                                </div>
+                                <div class="iw-addr-box" onclick="copyToClipboard('${safeAddr}')" title="주소 복사하기">
+                                    <span class="iw-addr">${displayAddr}</span>
+                                    <span class="btn-copy-label">복사</span>
+                                </div>
+                                <div style="font-weight:bold; color:red; margin-bottom:5px; font-size:13px;">총 ${shop.totalWins}회 당첨</div>
+                                <div class="iw-details-wrapper">
+                                    <div class="iw-details ${shop.totalWins > maxVisible ? 'collapsed' : ''}" id="iw-details-${shop.lat}-${shop.lng}">
+                                        ${roundTagsHtml}
+                                    </div>
+                                    ${shop.totalWins > maxVisible ? `
+                                    <button class="iw-more-btn" onclick="const det = this.parentElement.querySelector('.iw-details'); det.classList.toggle('collapsed'); this.innerText = det.classList.contains('collapsed') ? '총 ${shop.totalWins}회 중 ${shop.totalWins - maxVisible}개 회차 더보기 ▾' : '회차 정보 닫기 ▴'; event.stopPropagation();">
+                                        총 ${shop.totalWins}회 중 ${shop.totalWins - maxVisible}개 회차 더보기 ▾
+                                    </button>
+                                    ` : ''}
+                                </div>
+                                <button class="btn-gold" style="width:100%; margin-top:8px;" onclick="openAdModal('${safeName}', '${safeAddr}', ${shop.lat}, ${shop.lng}, ${shop.totalWins}, ${shop.closed})">
+                                    ✨ 이번 주 1등 추천 번호 받기
+                                </button>
+                                <div class="iw-actions">
+                                    ${shop.n.includes('동행복권') ? `
+                                    <button class="btn-iw btn-navi" style="width:100%; background:#2c3e50 !important;" onclick="window.open('https://www.dhlottery.co.kr/userGuide', '_blank')">
+                                        싸이트 링크로 가기
+                                    </button>
+                                    ` : (shop.closed ? `
+                                    <button class="btn-iw btn-navi" style="width:100%; background:#9e9e9e !important; cursor:not-allowed;" onclick="alert('해당 매장은 폐점되었습니다')">
+                                        ${shop.totalWins >= 10 ? '로드뷰(ROAD VIEW) 보기' : '🗺️ 카카오맵에서 보기'}
+                                    </button>
+                                    ` : (shop.totalWins >= 10 ? `
+                                    <button class="btn-iw btn-navi" style="width:100%;" onclick="openRoadviewWithNavi(${shop.lat}, ${shop.lng}, '${safeName}', '${safeAddr}', ${shop.pov ? JSON.stringify(shop.pov).replace(/"/g, '&quot;') : 'null'}, '${(shop.customMessage || "").replace(/'/g, "\\'")}')">
+                                        로드뷰(ROAD VIEW) 보기
+                                    </button>
+                                    ` : `
+                                    <button class="btn-iw btn-navi" style="width:100%;" onclick="openDirections(${shop.lat}, ${shop.lng}, '${safeName}')">
+                                        🗺️ 카카오맵에서 보기
+                                    </button>
+                                    `))}
+                                </div>
                             </div>
-                            ${shop.totalWins > maxVisible ? `
-                            <button class="iw-more-btn" onclick="const det = this.parentElement.querySelector('.iw-details'); det.classList.toggle('collapsed'); this.innerText = det.classList.contains('collapsed') ? '총 ${shop.totalWins}회 중 ${shop.totalWins - maxVisible}개 회차 더보기 ▾' : '회차 정보 닫기 ▴'; event.stopPropagation();">
-                                총 ${shop.totalWins}회 중 ${shop.totalWins - maxVisible}개 회차 더보기 ▾
-                            </button>
-                            ` : ''}
-                        </div>
-                        <button class="btn-gold" style="width:100%; margin-top:8px;" onclick="openAdModal('${safeName}', '${safeAddr}', ${shop.lat}, ${shop.lng}, ${shop.totalWins}, ${shop.closed})">
-                            ✨ 이번 주 1등 추천 번호 받기
-                        </button>
-                        <div class="iw-actions">
-                            ${shop.n.includes('동행복권') ? `
-                            <button class="btn-iw btn-navi" style="width:100%; background:#2c3e50 !important;" onclick="window.open('https://www.dhlottery.co.kr/userGuide', '_blank')">
-                                싸이트 링크로 가기
-                            </button>
-                            ` : (shop.closed ? `
-                            <button class="btn-iw btn-navi" style="width:100%; background:#9e9e9e !important; cursor:not-allowed;" onclick="alert('해당 매장은 폐점되었습니다')">
-                                ${shop.totalWins >= 10 ? '로드뷰(ROAD VIEW) 보기' : '🗺️ 카카오맵에서 보기'}
-                            </button>
-                            ` : (shop.totalWins >= 10 ? `
-                            <button class="btn-iw btn-navi" style="width:100%;" onclick="openRoadviewWithNavi(${shop.lat}, ${shop.lng}, '${safeName}', '${safeAddr}', ${shop.pov ? JSON.stringify(shop.pov).replace(/"/g, '&quot;') : 'null'}, '${(shop.customMessage || "").replace(/'/g, "\\'")}')">
-                                로드뷰(ROAD VIEW) 보기
-                            </button>
-                            ` : `
-                            <button class="btn-iw btn-navi" style="width:100%;" onclick="openDirections(${shop.lat}, ${shop.lng}, '${safeName}')">
-                                🗺️ 카카오맵에서 보기
-                            </button>
-                            `))}
-                        </div>
-                    </div>
-                `;
+                        `;
 
-                    const infowindow = new kakao.maps.InfoWindow({
-                        content: content,
-                        removable: true,
-                        disableAutoPan: true, // 카카오맵의 자동 점프 방지 (직접 오프셋 제어)
-                        zIndex: 10000 // Ensure popup is on top of everything (User Request)
-                    });
+                            const infowindow = new kakao.maps.InfoWindow({
+                                content: content,
+                                removable: true,
+                                disableAutoPan: true,
+                                zIndex: 10000
+                            });
 
-                    kakao.maps.event.addListener(marker, 'click', () => {
-                        // Force close ALL toasts immediately
-                        closeAllToasts();
+                            kakao.maps.event.addListener(marker, 'click', () => {
+                                closeAllToasts();
+                                if (currentInfoWindow) {
+                                    currentInfoWindow.close();
+                                    document.body.classList.remove('iw-open');
+                                }
+                                if (window.innerWidth <= 768) {
+                                    document.body.classList.add('iw-open');
+                                }
+                                infowindow.open(map, marker);
+                                currentInfoWindow = infowindow;
+                                const searchBox = document.getElementById('portalSearchContainer');
+                                if (searchBox) searchBox.style.zIndex = '9999';
+                                const topLogo = document.getElementById('portalTopLogo');
+                                if (topLogo) topLogo.style.zIndex = '9999';
 
-                        // Close previous InfoWindow if exists
-                        if (currentInfoWindow) {
-                            currentInfoWindow.close();
-                            document.body.classList.remove('iw-open');
+                                const proj = map.getProjection();
+                                if (proj) {
+                                    const markerPoint = proj.pointFromCoords(marker.getPosition());
+                                    const offsetY = window.innerWidth <= 768 ? 180 : 250;
+                                    markerPoint.y -= offsetY;
+                                    const newCenter = proj.coordsFromPoint(markerPoint);
+                                    map.panTo(newCenter);
+                                }
+                            });
                         }
-
-                        // Mobile Focus Mode: Hide distractions
-                        if (window.innerWidth <= 768) {
-                            document.body.classList.add('iw-open');
-                        }
-
-                        infowindow.open(map, marker);
-                        currentInfoWindow = infowindow; // Update current
-
-                        // [사용자 요청 옵션 3 해결 방안]: 팝업창이 검색창 밑에서 시작되도록 마커 중심점 조작
-                        // (강제로 검색창을 투명하게 만들거나 뒤로 보내는 z-index 조작 롤백 -> UI 버그 원천 차단)
-                        const searchBox = document.getElementById('portalSearchContainer');
-                        if (searchBox) searchBox.style.zIndex = '9999';
-                        const topLogo = document.getElementById('portalTopLogo');
-                        if (topLogo) topLogo.style.zIndex = '9999';
-
-                        // === 마커 위치를 기준으로 화면 하단으로 내리기 (중심을 위로 이동) ===
-                        // getProjection()을 이용해 실제 픽셀 단위로 정확하게 Y축 오프셋을 계산하여 부드럽게 PanTo 이동
-                        const proj = map.getProjection();
-                        if (proj) {
-                            const markerPoint = proj.pointFromCoords(marker.getPosition());
-                            // 모바일은 180px, PC는 250px 만큼 지도 중심을 위로 당겨서, 마커(와 팝업)가 검색창 밑에 여유있게 뜨도록 함
-                            const offsetY = window.innerWidth <= 768 ? 180 : 250;
-                            markerPoint.y -= offsetY;
-                            const newCenter = proj.coordsFromPoint(markerPoint);
-                            map.panTo(newCenter);
-                        }
-                    });
-
-                    markers.push(marker);
+                        markers.push(marker);
+                    }
                 });
                 clusterer.addMarkers(markers);
 
@@ -7667,7 +7802,7 @@
                                         style="font-size: 11px; margin-bottom: 5px; color:#9ca3af;">
                                         <span>MIN(21)</span>
                                         <span
-                                            style="color: #fbbf24; font-weight: 900; letter-spacing:1px; text-shadow: 0 0 5px rgba(251,191,36,0.5);">GOLDEN-ZONE
+                                            style="color: #fbbf24; font-weight: 900; letter-spacing:1px; text-shadow: 0 0 15px rgba(251,191,36,0.5);">GOLDEN-ZONE
                                             (100~170)</span>
                                         <span>MAX(255)</span>
                                     </div>
