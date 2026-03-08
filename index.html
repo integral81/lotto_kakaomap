@@ -3774,9 +3774,9 @@
                     <div id="qrGameList">
                         <!-- Javascript will populate this -->
                     </div>
-                    <div style="text-align:center; margin-top:15px;">
-                        <button class="btn-sm" onclick="restartQRScanner()">다시 스캔하기</button>
-                        <button class="btn-sm" onclick="restartQRScanner()">다시 스캔하기</button>
+                    <div style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
+                        <button class="btn-sm" style="background:#444;" onclick="restartQRScanner()">다시 스캔하기</button>
+                        <button class="btn-sm" style="background:#666;" onclick="closeQRScanner()">닫기</button>
                     </div>
                 </div>
             </div>
@@ -6837,7 +6837,7 @@
                     }
 
                     if (html5QrCode.isScanning) {
-                        await html5QrCode.stop();
+                        try { await html5QrCode.stop(); } catch (e) { }
                     }
 
                     const result = await html5QrCode.scanFile(file, true);
@@ -6855,14 +6855,21 @@
                 modal.style.display = 'flex';
                 qrLog("연결 중...");
 
+                // Reset UI for re-entry
                 document.getElementById('qrResult').style.display = 'none';
                 document.getElementById('qr-reader').style.display = 'block';
                 document.getElementById('qr-visual-guide').style.display = 'block';
+                document.getElementById('qr-control-panel').style.display = 'flex';
                 document.getElementById('btn-torch').style.display = 'none';
 
                 try {
                     if (!html5QrCode) {
                         html5QrCode = new Html5Qrcode("qr-reader", { verbose: false });
+                    }
+
+                    // Force stop if lingering
+                    if (html5QrCode.isScanning) {
+                        try { await html5QrCode.stop(); } catch (e) { }
                     }
 
                     const config = {
@@ -6952,11 +6959,10 @@
                             html5QrCode.clear();
                             html5QrCode = null; // Destroy instance to force fresh start next time
                             document.getElementById('qr-reader').style.display = 'none';
+                            document.getElementById('qr-control-panel').style.display = 'none';
                             verifyLotteryQR(decodedText);
                         }).catch(err => console.error(err));
                     }
-                } else {
-                    // Continuous scanning...
                 }
             }
 
