@@ -1480,6 +1480,19 @@
             /* Reset cursor for content area */
         }
 
+        .qr-modal-content {
+            background-color: #fff !important;
+            width: 90% !important;
+            max-width: 450px !important;
+            border-radius: 20px !important;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10002;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
         /* Mobile Focus Mode: Hide distractions when InfoWindow is open */
         @media (max-width: 768px) {
 
@@ -3726,7 +3739,7 @@
                 <span class="modal-close" style="color:#333; z-index:100; padding:10px; right:10px; top:5px;"
                     onclick="closeQRScanner()">&times;</span>
 
-                <div id="qr-reader" style="width:100%; position:relative;">
+                <div id="qr-reader" style="width:100%; position:relative; min-height:300px; background:#000;">
                     <!-- Custom Visual Guide -->
                     <div id="qr-visual-guide"
                         style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:70%; height:70%; border:2px solid #fff; border-radius:15px; box-shadow:0 0 0 4000px rgba(0,0,0,0.5); z-index:10; pointer-events:none; border-style:dashed;">
