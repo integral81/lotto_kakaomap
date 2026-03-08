@@ -4497,6 +4497,19 @@
                 const params = `?lat=gte.${sw.getLat() - 0.01}&lat=lte.${ne.getLat() + 0.01}&lng=gte.${sw.getLng() - 0.01}&lng=lte.${ne.getLng() + 0.01}`;
 
                 try {
+                    const query = `?lat=gte.${sw.getLat() - 0.01}&lat=lte.${ne.getLat() + 0.01}&lng=gte.${sw.getLng() - 0.01}&lng=lte.${ne.getLng() + 0.01}&select=*,lotto_winners(id,round,method)`;
+                    const rawStoreRows = await supabaseFetchAll('lotto_stores', query);
+
+                    // Transform joined data to flat structure expected by processNewStores
+                    const storeRows = rawStoreRows.map(s => {
+                        const winners = s.lotto_winners || [];
+                        return {
+                            ...s,
+                            total_wins: winners.length,
+                            rounds: winners.map(w => ({ r: w.round, m: w.method, w_id: w.id }))
+                        };
+                    });
+
                     processNewStores(storeRows);
 
                     if (newStoresFound) {
