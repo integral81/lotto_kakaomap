@@ -6928,19 +6928,14 @@
                         html5QrCode.stop().then(() => {
                             html5QrCode.clear();
                             html5QrCode = null;
-                            // Return to hamburger menu
-                            toggleNav();
                         }).catch(err => {
                             console.log("Failed to stop qr code scanner", err);
-                            toggleNav();
+                            html5QrCode = null;
                         });
                     } else {
                         html5QrCode.clear();
                         html5QrCode = null;
-                        toggleNav();
                     }
-                } else {
-                    toggleNav();
                 }
             }
 
@@ -6953,15 +6948,20 @@
             function onScanSuccess(decodedText, decodedResult) {
                 console.log(`Scan result: ${decodedText}`);
                 if (decodedText.includes('dhlottery.co.kr') && decodedText.includes('v=')) {
-                    // Stop scanning
+                    // Stop scanning and cleanup
                     if (html5QrCode) {
-                        html5QrCode.stop().then(() => {
-                            html5QrCode.clear();
-                            html5QrCode = null; // Destroy instance to force fresh start next time
+                        const currentScanner = html5QrCode;
+                        html5QrCode = null; // Prevent re-entry issues during async stop
+
+                        currentScanner.stop().then(() => {
+                            currentScanner.clear();
                             document.getElementById('qr-reader').style.display = 'none';
                             document.getElementById('qr-control-panel').style.display = 'none';
                             verifyLotteryQR(decodedText);
-                        }).catch(err => console.error(err));
+                        }).catch(err => {
+                            console.error(currentScanner, err);
+                            verifyLotteryQR(decodedText);
+                        });
                     }
                 }
             }
