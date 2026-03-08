@@ -19,7 +19,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 CACHE_FILE = "geocoded_cache_healthy.xlsx"
-KAKAO_API_KEY = "a6b27b6dab16c7e3459bb9589bf1269d" # Use found JS key
+KAKAO_API_KEY = os.environ.get('KAKAO_REST_API_KEY', "a6b27b6dab16c7e3459bb9589bf1269d") # Prefer Env Var
 INTERNET_LOTTERY_LAT, INTERNET_LOTTERY_LNG = 37.4831, 127.0225 # Near Donghaeng Lottery HQ
 
 SUPABASE_URL = "https://sdvrijpwwpqgaivfutjm.supabase.co"
