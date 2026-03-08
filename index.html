@@ -62,7 +62,7 @@
       =============================================================
     -->
     <!-- Library for QR Code Scanning & Screen Capture -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -3726,7 +3726,29 @@
                 <span class="modal-close" style="color:#333; z-index:100; padding:10px; right:10px; top:5px;"
                     onclick="closeQRScanner()">&times;</span>
 
-                <div id="qr-reader" style="width:100%;"></div>
+                <div id="qr-reader" style="width:100%; position:relative;">
+                    <!-- Custom Visual Guide (Purely decorative to avoid library cropping issues) -->
+                    <div id="qr-visual-guide"
+                        style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:70%; height:70%; border:2px solid #fff; border-radius:15px; box-shadow:0 0 0 4000px rgba(0,0,0,0.5); z-index:10; pointer-events:none; border-style:dashed;">
+                        <div
+                            style="position:absolute; top:-10px; left:-10px; width:30px; height:30px; border-top:4px solid #fae100; border-left:4px solid #fae100;">
+                        </div>
+                        <div
+                            style="position:absolute; top:-10px; right:-10px; width:30px; height:30px; border-top:4px solid #fae100; border-right:4px solid #fae100;">
+                        </div>
+                        <div
+                            style="position:absolute; bottom:-10px; left:-10px; width:30px; height:30px; border-bottom:4px solid #fae100; border-left:4px solid #fae100;">
+                        </div>
+                        <div
+                            style="position:absolute; bottom:-10px; right:-10px; width:30px; height:30px; border-bottom:4px solid #fae100; border-right:4px solid #fae100;">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="qr-debug-log"
+                    style="font-size:10px; padding:10px; background:#f0f0f0; border-top:1px solid #ddd; max-height:100px; overflow-y:auto; font-family:monospace; color:#444;">
+                    [Scanner Status] Waiting for camera...
+                </div>
 
                 <div id="qrResult" class="qr-result-container" style="display:none;">
                     <h3 style="margin:0 0 10px 0; color:#333; text-align:center;">
@@ -6755,52 +6777,66 @@
 
             let html5QrCode = null;
 
-            function showQRScanner() {
+            function qrLog(msg) {
+                const logEl = document.getElementById('qr-debug-log');
+                if (logEl) {
+                    logEl.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                    console.log(`[QR LOG] ${msg}`);
+                }
+            }
+
+            async function showQRScanner() {
                 closeNav();
                 const modal = document.getElementById('qrModal');
                 modal.style.display = 'flex';
+                qrLog("Initializing...");
 
-                // Reset Result
                 document.getElementById('qrResult').style.display = 'none';
                 document.getElementById('qr-reader').style.display = 'block';
 
-                if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("qr-reader");
-                }
+                try {
+                    if (!html5QrCode) {
+                        html5QrCode = new Html5Qrcode("qr-reader");
+                    }
 
-                const config = {
-                    fps: 20, // High FPS for more analysis frames
-                    useBarCodeDetectorIfSupported: true, // Use native hardware decoding if available
-                    qrbox: (viewWidth, viewHeight) => {
-                        const minDim = Math.min(viewWidth, viewHeight);
-                        // Increase surface area to 80% to capture high-density QRs better
-                        const size = Math.floor(minDim * 0.8);
-                        return { width: size, height: size };
-                    },
-                    aspectRatio: 1.0,
-                    rememberLastUsedCamera: true
-                };
+                    const config = {
+                        fps: 20,
+                        useBarCodeDetectorIfSupported: true,
+                        // [V1.5.5 Fix]: Remove 'qrbox'. By removing qrbox, the library scans the FULL video frame.
+                        // This uses 100% of available pixels for decoding, which is critical for high-density QRs.
+                        aspectRatio: 1.0,
+                        rememberLastUsedCamera: true
+                    };
 
-                // Start Camera with standard constraints
-                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-                    .then(() => {
-                        // Attempt post-start focus optimization
-                        try {
-                            const videoElement = document.querySelector('#qr-reader video');
-                            if (videoElement && videoElement.srcObject) {
-                                const track = videoElement.srcObject.getVideoTracks()[0];
-                                if (track.getCapabilities().focusMode?.includes('continuous')) {
-                                    track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-                                }
+                    const cameras = await Html5Qrcode.getCameras();
+                    qrLog(`Cameras: ${cameras.length}`);
+
+                    const backCamera = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[cameras.length - 1];
+                    const cameraId = backCamera ? backCamera.id : { facingMode: "environment" };
+
+                    await html5QrCode.start(cameraId, config, onScanSuccess);
+                    qrLog("Scanning active (Full Frame)");
+
+                    // Attempt focus optimization
+                    try {
+                        const video = document.querySelector('#qr-reader video');
+                        if (video && video.srcObject) {
+                            const track = video.srcObject.getVideoTracks()[0];
+                            const settings = track.getSettings();
+                            qrLog(`Res: ${settings.width}x${settings.height}`);
+                            if (track.getCapabilities().focusMode?.includes('continuous')) {
+                                await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+                                qrLog("Auto-focus enabled");
                             }
-                        } catch (e) { }
-                    })
-                    .catch(err => {
-                        console.error("Error starting QR scanner", err);
-                        alert("카메라를 실행할 수 없습니다. 권한을 확인해주세요.\n" + err);
-                        // Return to hamburger menu on permission denial or error
-                        closeQRScanner();
-                    });
+                        }
+                    } catch (e) { }
+
+                } catch (err) {
+                    qrLog(`Error: ${err}`);
+                    console.error("Error starting QR scanner", err);
+                    alert("카메라를 실행할 수 없습니다.\n" + err);
+                    closeQRScanner();
+                }
             }
 
             function closeQRScanner() {
