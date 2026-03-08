@@ -6775,16 +6775,8 @@
                     rememberLastUsedCamera: true
                 };
 
-                // Advanced video constraints for better focus
-                const videoConstraints = {
-                    facingMode: "environment",
-                    focusMode: "continuous",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                };
-
-                // Start Camera
-                html5QrCode.start(videoConstraints, config, onScanSuccess)
+                // Start Camera (Use simple constraint to avoid initialization error)
+                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
                     .catch(err => {
                         console.error("Error starting QR scanner", err);
                         alert("카메라를 실행할 수 없습니다. 권한을 확인해주세요.\n" + err);
