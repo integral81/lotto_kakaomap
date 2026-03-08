@@ -6769,33 +6769,31 @@
                 }
 
                 const config = {
-                    fps: 10, // Lower FPS for better decoding stability on some mobile devices
+                    fps: 20, // High FPS for more analysis frames
+                    useBarCodeDetectorIfSupported: true, // Use native hardware decoding if available
                     qrbox: (viewWidth, viewHeight) => {
                         const minDim = Math.min(viewWidth, viewHeight);
-                        return { width: minDim * 0.7, height: minDim * 0.7 };
+                        // Increase surface area to 80% to capture high-density QRs better
+                        const size = Math.floor(minDim * 0.8);
+                        return { width: size, height: size };
                     },
                     aspectRatio: 1.0,
                     rememberLastUsedCamera: true
                 };
 
-                // Start Camera
+                // Start Camera with standard constraints
                 html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
                     .then(() => {
-                        // Post-initialization: Attempt to force auto-focus if supported by the browser
+                        // Attempt post-start focus optimization
                         try {
                             const videoElement = document.querySelector('#qr-reader video');
                             if (videoElement && videoElement.srcObject) {
                                 const track = videoElement.srcObject.getVideoTracks()[0];
-                                const capabilities = track.getCapabilities();
-                                if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-                                    track.applyConstraints({
-                                        advanced: [{ focusMode: 'continuous' }]
-                                    }).catch(e => console.warn('[QR] Focus constraint failed:', e));
+                                if (track.getCapabilities().focusMode?.includes('continuous')) {
+                                    track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
                                 }
                             }
-                        } catch (e) {
-                            console.warn('[QR] Post-start focus optimization skipped:', e.message);
-                        }
+                        } catch (e) { }
                     })
                     .catch(err => {
                         console.error("Error starting QR scanner", err);
