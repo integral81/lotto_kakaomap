@@ -3201,6 +3201,7 @@
 
         .slider-track {
             position: absolute;
+            left: 0;
             width: 100%;
             height: 6px;
             background: #ddd;
@@ -3210,6 +3211,7 @@
 
         .slider-fill {
             position: absolute;
+            left: 0;
             height: 6px;
             background: linear-gradient(to right, #FFD700, #D4AF37);
             /* Gold gradient to match KINOV theme */
@@ -3219,12 +3221,15 @@
 
         .multi-range-slider {
             position: absolute;
+            left: 0;
             width: 100%;
             pointer-events: none;
             -webkit-appearance: none;
             background: transparent;
             z-index: 3;
             margin: 0;
+            padding: 0;
+            /* Avoid browser-default padding */
         }
 
         .multi-range-slider::-webkit-slider-thumb {
