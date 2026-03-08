@@ -6769,14 +6769,34 @@
                 }
 
                 const config = {
-                    fps: 15,
-                    qrbox: { width: 300, height: 300 },
+                    fps: 10, // Lower FPS for better decoding stability on some mobile devices
+                    qrbox: (viewWidth, viewHeight) => {
+                        const minDim = Math.min(viewWidth, viewHeight);
+                        return { width: minDim * 0.7, height: minDim * 0.7 };
+                    },
                     aspectRatio: 1.0,
                     rememberLastUsedCamera: true
                 };
 
-                // Start Camera (Use simple constraint to avoid initialization error)
+                // Start Camera
                 html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                    .then(() => {
+                        // Post-initialization: Attempt to force auto-focus if supported by the browser
+                        try {
+                            const videoElement = document.querySelector('#qr-reader video');
+                            if (videoElement && videoElement.srcObject) {
+                                const track = videoElement.srcObject.getVideoTracks()[0];
+                                const capabilities = track.getCapabilities();
+                                if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+                                    track.applyConstraints({
+                                        advanced: [{ focusMode: 'continuous' }]
+                                    }).catch(e => console.warn('[QR] Focus constraint failed:', e));
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('[QR] Post-start focus optimization skipped:', e.message);
+                        }
+                    })
                     .catch(err => {
                         console.error("Error starting QR scanner", err);
                         alert("카메라를 실행할 수 없습니다. 권한을 확인해주세요.\n" + err);
