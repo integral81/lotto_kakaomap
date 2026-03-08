@@ -6855,12 +6855,15 @@
                 modal.style.display = 'flex';
                 qrLog("연결 중...");
 
-                // Reset UI for re-entry
+                // Reset UI for re-entry - Ensure maximum visibility
                 document.getElementById('qrResult').style.display = 'none';
                 document.getElementById('qr-reader').style.display = 'block';
                 document.getElementById('qr-visual-guide').style.display = 'block';
                 document.getElementById('qr-control-panel').style.display = 'flex';
                 document.getElementById('btn-torch').style.display = 'none';
+
+                // Clear any previous results
+                document.getElementById('qrGameList').innerHTML = "";
 
                 try {
                     if (!html5QrCode) {
