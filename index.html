@@ -7297,17 +7297,42 @@
                         return;
                     }
 
-                    const sortedByDist = markers.map(m => {
-                        const p = m.getPosition();
-                        return {
-                            marker: m,
-                            distance: getDistance(lat, lng, p.getLat(), p.getLng())
-                        };
-                    }).sort((a, b) => a.distance - b.distance);
+                    const sortedByDist = markers
+                        .map(m => {
+                            const p = m.getPosition();
+                            return {
+                                marker: m,
+                                distance: getDistance(lat, lng, p.getLat(), p.getLng())
+                            };
+                        })
+                        .filter(item => {
+                            // [요청]: "동행복권"(사이트 당첨) 제외
+                            const name = item.marker.shopData.n || "";
+                            return !name.includes("동행복권");
+                        })
+                        .sort((a, b) => a.distance - b.distance);
+
+                    // [V1.2 Enhancement]: Deduplicate results with identical names within a very close range (<15 meters)
+                    const deduplicated = [];
+                    sortedByDist.forEach(item => {
+                        const shop = item.marker.shopData;
+                        const existing = deduplicated.find(d =>
+                            d.marker.shopData.n === shop.n &&
+                            Math.abs(d.distance - item.distance) < 0.015 // ~15m tolerance for same location
+                        );
+
+                        if (existing) {
+                            // Store the marker of the closest entry, but keep track of others for total win calculation
+                            if (!existing.mergedMarkers) existing.mergedMarkers = [existing.marker];
+                            existing.mergedMarkers.push(item.marker);
+                        } else {
+                            deduplicated.push(item);
+                        }
+                    });
 
                     const isMobile = window.innerWidth <= 768;
                     const topCount = isMobile ? 2 : 3;
-                    const topShops = sortedByDist.slice(0, topCount);
+                    const topShops = deduplicated.slice(0, topCount);
 
                     if (topShops.length > 0) {
                         const nearestDist = topShops[0].distance;
