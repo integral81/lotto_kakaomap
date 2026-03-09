@@ -4214,11 +4214,12 @@
                 document.getElementById('totalDataCount').innerText = data.length.toLocaleString();
                 if (data.length > 0) {
                     const rounds = data.map(d => d.r || 0);
-                    const maxR = Math.max(...rounds, 1212);
+                    const maxR = Math.max(...rounds, 1);
                     const minR = Math.min(...rounds, 1);
 
                     document.getElementById('maxRound').value = maxR;
-                    document.getElementById('minRound').value = 1;
+                    // [V1.5.5 Fix]: Default to single latest round instead of all history
+                    document.getElementById('minRound').value = maxR;
                 }
 
                 applyFilters();
@@ -4242,6 +4243,9 @@
                     maxSlider.max = trueLatestRound;
                     minSlider.max = trueLatestRound;
                     maxSlider.value = trueLatestRound;
+                    // [V1.5.5 Fix]: Start with ONLY the latest round selected
+                    minSlider.value = trueLatestRound;
+
                     const rangeLabel = document.getElementById('maxRoundLabel');
                     if (rangeLabel) {
                         rangeLabel.innerText = trueLatestRound;
@@ -5197,7 +5201,8 @@
                 const futureMatch = normalizedVal.match(/(\d+)(회|당첨|당첨자|회차)/) || normalizedVal.match(/^(\d+)$/);
                 if (futureMatch) {
                     const searchNum = parseInt(futureMatch[1], 10);
-                    const latestRound = (typeof allData !== 'undefined' && allData.length > 0) ? Math.max(...allData.map(d => d.r || 0)) : 1213;
+                    // [V1.5.5 Fix]: Dynamic latest round detection
+                    const latestRound = (typeof window.lottoHistory !== 'undefined') ? Math.max(...Object.keys(window.lottoHistory).map(Number)) : 1214;
 
                     if (searchNum > latestRound) {
                         showKinovAlert(`가장 마지막 당첨회차는<br><strong style="font-size:16px; color:#ffd700;">${latestRound}회차</strong>였습니다!!`);
@@ -5327,9 +5332,20 @@
                     // - minR === maxR(단일 회차) 또는 좁은 범위(≤10회)일 때는 정확한 회차 필터 우선
                     const isHighWinShop = (d.totalWins >= 10);
                     const isNarrowRange = (maxR - minR) <= 10;
-                    const rMatch = (d.r === undefined) ||
-                        (d.r >= minR && d.r <= maxR) ||
-                        (!isNarrowRange && isHighWinShop);
+
+                    // [V1.5.5 Fix]: Refined round matching for multi-win stores.
+                    // If d.r is missing, check if any of d.rounds falls within range.
+                    let rMatch = false;
+                    if (d.r !== undefined) {
+                        rMatch = (d.r >= minR && d.r <= maxR);
+                    } else if (d.rounds && d.rounds.length > 0) {
+                        rMatch = d.rounds.some(rnd => rnd.r >= minR && rnd.r <= maxR);
+                    }
+
+                    // Special exception for Tier 1 shops in wide ranges, but NOT in narrow/single-round views
+                    if (!isNarrowRange && isHighWinShop) {
+                        rMatch = true;
+                    }
 
                     let mMatch = false;
                     // 선택된 방식 필터 중 최소 하나라도 체크되었는지 확인
