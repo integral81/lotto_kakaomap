@@ -1697,21 +1697,30 @@
                 margin: 0 0 15px 0 !important;
             }
 
+            .recent-row {
+                padding: 4px 6px !important;
+            }
+
             .recent-round-num {
-                width: 38px !important;
-                font-size: 12px !important;
+                width: 36px !important;
+                font-size: 11px !important;
+                margin-right: 4px !important;
+            }
+
+            .recent-balls-container {
+                gap: 2px !important;
             }
 
             .mini-ball {
-                width: 26px !important;
-                height: 26px !important;
-                font-size: 13px !important;
-                margin-right: 1px !important;
+                width: 22px !important;
+                height: 22px !important;
+                font-size: 11px !important;
+                margin-right: 0 !important;
             }
 
             .latest-round-glow .mini-ball {
                 transform: none !important;
-                margin: 0 1px !important;
+                margin: 0 !important;
             }
         }
 
@@ -5664,6 +5673,7 @@
 
                     // Balls Container
                     const ballsDiv = document.createElement('div');
+                    ballsDiv.className = 'recent-balls-container';
                     ballsDiv.style.display = 'flex';
                     ballsDiv.style.alignItems = 'center'; // Vertically center items
                     ballsDiv.style.gap = '3px';
