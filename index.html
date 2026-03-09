@@ -4198,7 +4198,7 @@
                     item.totalWins = Math.max(stats.count, stats.recordedMax);
 
                     // Defaults for filtering
-                    if (item.r === undefined) item.r = 1213;
+                    if (item.r === undefined) item.r = 1214;
                     if (item.m === undefined) item.m = "정보없음";
                 });
 
@@ -5412,7 +5412,7 @@
                             if ((d.n || "").includes("동행복권")) return false;
                             return d.r === latestRound;
                         });
-                        // 검색어를 "제1213회 1등" 형태로 표시
+                        // 검색어를 "제1214회 1등" 형태로 표시
                         const input = document.getElementById('portalSearchInput');
                         if (input) input.value = `제${latestRound}회 1등 판매점`;
                     } else if (q === "전국1등" || q === "전국1위") {
