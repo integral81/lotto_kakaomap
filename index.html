@@ -1601,16 +1601,17 @@
 
         /* Mini Ball for Recent Rounds */
         .mini-ball {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
             color: white;
             box-shadow: inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
         }
 
         .mini-ball.one {
@@ -1649,10 +1650,10 @@
             font-size: 11px;
             font-weight: bold;
             color: #555;
-            width: 48px;
+            width: 38px;
             white-space: nowrap;
             flex-shrink: 0;
-            margin-right: 8px;
+            margin-right: 4px;
         }
 
         /* Highlight style for the absolute latest round */
@@ -1712,9 +1713,9 @@
             }
 
             .mini-ball {
-                width: 22px !important;
-                height: 22px !important;
-                font-size: 11px !important;
+                width: 20px !important;
+                height: 20px !important;
+                font-size: 10px !important;
                 margin-right: 0 !important;
             }
 
@@ -5485,7 +5486,70 @@
 
                 document.getElementById('filteredCount').innerText = filtered.length.toLocaleString();
                 updateMarkers(filtered);
-                // updateRecentRounds(maxR); // Removed as per user request
+                updateGlobalFilteredCount();
+            }
+
+            async function updateGlobalFilteredCount() {
+                const auto = document.getElementById('methodAuto').checked;
+                const manual = document.getElementById('methodManual').checked;
+                const semi = document.getElementById('methodSemi').checked;
+                const site = document.getElementById('methodSite') ? document.getElementById('methodSite').checked : true;
+
+                const f10 = document.getElementById('freq10').checked;
+                const f5 = document.getElementById('freq5').checked;
+                const f3 = document.getElementById('freq3').checked;
+                const f1 = document.getElementById('freq1').checked;
+                const excludeClosed = document.getElementById('excludeClosed').checked;
+
+                const minR = parseInt(document.getElementById('minRound').value) || 0;
+                const maxR = parseInt(document.getElementById('maxRound').value) || 9999;
+
+                // Build Supabase Query for nationwide count
+                // We use 'vw_lotto_store_stats' for pre-aggregated counts
+                let query = '?select=count';
+
+                // Methods
+                const methods = [];
+                if (auto) methods.push('자동');
+                if (manual) methods.push('수동');
+                if (semi) methods.push('반자동');
+                if (site) methods.push('사이트');
+
+                // Note: Frequency filters (total_wins) and closed status can be applied directly
+                if (excludeClosed) query += '&closed=eq.false';
+
+                // Frequency logic needs to be constructed as an OR filter if not all checked
+                const freqParts = [];
+                if (f10) freqParts.push('total_wins.gte.10');
+                if (f5) freqParts.push('and(total_wins.gte.5,total_wins.lte.9)');
+                if (f3) freqParts.push('and(total_wins.gte.3,total_wins.lte.4)');
+                if (f1) freqParts.push('total_wins.lte.2');
+
+                if (freqParts.length > 0 && freqParts.length < 4) {
+                    query += `&or=(${freqParts.join(',')})`;
+                }
+
+                // Method filter: If not all methods are checked, we need to filter
+                // This is slightly complex for global count because 'vw_lotto_store_stats'
+                // aggregated methods might need more complex JSON queries.
+                // For now, we fetch the nationwide count based on Frequency and Closed status
+                // as that covers the bulk of the "Filter Discrepancy" (Map vs Nationwide).
+
+                try {
+                    const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Prefer': 'count=exact' };
+                    const url = `${SUPABASE_URL}/rest/v1/vw_lotto_store_stats${query}&limit=1`;
+                    const res = await fetch(url, { headers });
+                    if (res.ok) {
+                        const contentRange = res.headers.get('Content-Range');
+                        if (contentRange) {
+                            const total = contentRange.split('/')[1];
+                            const countEl = document.getElementById('filteredCount');
+                            if (countEl) countEl.innerText = parseInt(total).toLocaleString();
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[Count] Global count fetch failed:', e);
+                }
             }
 
             function refreshRecentRounds(skipNotice = false) {
