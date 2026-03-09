@@ -5500,7 +5500,34 @@
                     }
                 }
 
-                document.getElementById('filteredCount').innerText = filtered.length.toLocaleString();
+                // [V1.5.5 Fix]: Count total winning tickets (markers) instead of unique store locations.
+                let totalTickets = 0;
+                filtered.forEach(d => {
+                    if (d.rounds && d.rounds.length > 0) {
+                        const matchingRounds = d.rounds.filter(rnd => {
+                            const r = rnd.r;
+                            const m = rnd.m || '';
+                            if (r < minR || r > maxR) return false;
+
+                            const auto = document.getElementById('methodAuto').checked;
+                            const manual = document.getElementById('methodManual').checked;
+                            const semi = document.getElementById('methodSemi').checked;
+                            const site = document.getElementById('methodSite') ? document.getElementById('methodSite').checked : true;
+
+                            if (m.includes('자동') && !auto && !m.includes('반자동')) return false;
+                            if (m.includes('수동') && !manual) return false;
+                            if (m.includes('반자동') && !semi) return false;
+                            if (m.includes('사이트') && !site) return false;
+                            return true;
+                        });
+                        totalTickets += matchingRounds.length;
+                    } else if (d.r !== undefined) {
+                        // Fallback for flat data
+                        totalTickets += 1;
+                    }
+                });
+
+                document.getElementById('filteredCount').innerText = totalTickets.toLocaleString();
                 updateMarkers(filtered);
                 updateGlobalFilteredCount();
             }
@@ -5520,40 +5547,28 @@
                 const minR = parseInt(document.getElementById('minRound').value) || 0;
                 const maxR = parseInt(document.getElementById('maxRound').value) || 9999;
 
-                // Build Supabase Query for nationwide count
-                // We use 'vw_lotto_store_stats' for pre-aggregated counts
-                let query = '?select=count';
+                // Build Supabase Query for nationwide ticket count (lotto_winners)
+                let query = `?round=gte.${minR}&round=lte.${maxR}`;
 
-                // Methods
-                const methods = [];
-                if (auto) methods.push('자동');
-                if (manual) methods.push('수동');
-                if (semi) methods.push('반자동');
-                if (site) methods.push('사이트');
+                // Methods filter
+                const selectedMethods = [];
+                if (auto) selectedMethods.push('자동');
+                if (manual) selectedMethods.push('수동');
+                if (semi) selectedMethods.push('반자동');
+                if (site) selectedMethods.push('사이트');
 
-                // Note: Frequency filters (total_wins) and closed status can be applied directly
-                if (excludeClosed) query += '&closed=eq.false';
-
-                // Frequency logic needs to be constructed as an OR filter if not all checked
-                const freqParts = [];
-                if (f10) freqParts.push('total_wins.gte.10');
-                if (f5) freqParts.push('and(total_wins.gte.5,total_wins.lte.9)');
-                if (f3) freqParts.push('and(total_wins.gte.3,total_wins.lte.4)');
-                if (f1) freqParts.push('total_wins.lte.2');
-
-                if (freqParts.length > 0 && freqParts.length < 4) {
-                    query += `&or=(${freqParts.join(',')})`;
+                if (selectedMethods.length > 0 && selectedMethods.length < 4) {
+                    query += `&method=in.(${selectedMethods.join(',')})`;
                 }
 
-                // Method filter: If not all methods are checked, we need to filter
-                // This is slightly complex for global count because 'vw_lotto_store_stats'
-                // aggregated methods might need more complex JSON queries.
-                // For now, we fetch the nationwide count based on Frequency and Closed status
-                // as that covers the bulk of the "Filter Discrepancy" (Map vs Nationwide).
+                // [Note]: Frequency (total wins) filter is harder to apply globally via lotto_winners
+                // without a complex join. For now, we prioritize Round & Method which matches
+                // the most common user behavior for "Round 1214" verification.
 
                 try {
                     const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Prefer': 'count=exact' };
-                    const url = `${SUPABASE_URL}/rest/v1/vw_lotto_store_stats${query}&limit=1`;
+                    // Query lotto_winners for individual ticket count
+                    const url = `${SUPABASE_URL}/rest/v1/lotto_winners${query}&limit=1`;
                     const res = await fetch(url, { headers });
                     if (res.ok) {
                         const contentRange = res.headers.get('Content-Range');
