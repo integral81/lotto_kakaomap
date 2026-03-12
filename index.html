@@ -2950,28 +2950,6 @@
             filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) grayscale(20%);
         }
 
-        /* Range Slider Thumb */
-        #minRound::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 2px solid #5D31D4;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        #minRound::-moz-range-thumb {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 2px solid #5D31D4;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
         /* Floating buttons miniaturize */
         .floating-btn,
         .menu-btn,
@@ -3250,22 +3228,71 @@
             pointer-events: none;
             -webkit-appearance: none;
             background: transparent;
-            z-index: 3;
             margin: 0;
             padding: 0;
-            /* Avoid browser-default padding */
         }
 
+        /* Left Thumb (min) */
+        #minRound {
+            z-index: 4; /* Higher so it stays on top of maxRound */
+        }
+
+        /* Right Thumb (max) */
+        #maxRound {
+            z-index: 3;
+        }
+
+        /* Base Thumb Styles for WebKit */
         .multi-range-slider::-webkit-slider-thumb {
             pointer-events: all;
-            background: #fff;
-            border: 2px solid #5D31D4;
             border-radius: 50%;
-            height: 20px;
-            width: 20px;
+            height: 28px; /* Increased from 20px for easier touch */
+            width: 28px; /* Increased from 20px for easier touch */
             -webkit-appearance: none;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            cursor: grabbing; /* Better UX cursor */
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease-out;
+            /* Extra invisible border helps touch area on mobile without changing visual size */
+            border: 4px solid transparent; 
+            background-clip: padding-box; 
+        }
+
+        .multi-range-slider::-webkit-slider-thumb:active {
+            transform: scale(1.15); /* Pop effect on grab */
+        }
+
+        /* Based Thumb Styles for Firefox */
+        .multi-range-slider::-moz-range-thumb {
+            pointer-events: all;
+            border-radius: 50%;
+            height: 28px;
+            width: 28px;
+            cursor: grabbing;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease-out;
+            border: 4px solid transparent; 
+            background-clip: padding-box; 
+        }
+
+        .multi-range-slider::-moz-range-thumb:active {
+            transform: scale(1.15);
+        }
+
+        /* Colorful specific styling */
+        /* minRound specifics (Left thumb: Yellow) */
+        #minRound::-webkit-slider-thumb {
+            background-color: #FFD700;
+        }
+        #minRound::-moz-range-thumb {
+            background-color: #FFD700;
+        }
+
+        /* maxRound specifics (Right thumb: Purple) */
+        #maxRound::-webkit-slider-thumb {
+            background-color: #5D31D4;
+        }
+        #maxRound::-moz-range-thumb {
+            background-color: #5D31D4;
         }
     </style>
 </head>
