@@ -5595,6 +5595,13 @@
                 const f1 = document.getElementById('freq1').checked;
                 const excludeClosed = document.getElementById('excludeClosed').checked;
 
+                // [Fix] If any frequency filter or exclude closed filter is active,
+                // the local `totalTickets` calculation is already 100% accurate.
+                // Do not overwrite it with the global Supabase count (which ignores these joins).
+                if (!f10 || !f5 || !f3 || !f1 || excludeClosed) {
+                    return; // Keep the localized, exact count instead of fetching the nationwide broad count
+                }
+
                 const minR = parseInt(document.getElementById('minRound').value) || 0;
                 const maxR = parseInt(document.getElementById('maxRound').value) || 9999;
 
