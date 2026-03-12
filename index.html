@@ -1532,8 +1532,8 @@
         }
 
         .ball {
-            width: 35px;
-            height: 35px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             background: #eee;
             display: flex;
@@ -1541,7 +1541,7 @@
             justify-content: center;
             font-weight: bold;
             color: white;
-            font-size: 14px;
+            font-size: 18px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
 
@@ -3670,7 +3670,7 @@
 
             <!-- Result Content (Updated with similar container style for consistency) -->
             <div id="resultContent" onclick="event.stopPropagation()"
-                style="display:none; position:relative; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:15px 15px; max-height:94dvh; overflow-y:auto; width:90%; max-width:350px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                style="display:none; position:relative; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:15px 15px; max-height:94dvh; overflow-y:auto; width:90%; max-width:400px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
                 <span
                     style="position:absolute; top:15px; right:20px; color:white; font-size:28px; font-weight:bold; cursor:pointer; z-index:10;"
                     onclick="closeModal()">✕</span>
@@ -6603,9 +6603,9 @@
                             ball.className = 'ball ' + getBallColor(n);
                             ball.innerText = n;
                             ball.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
-                            ball.style.width = '34px';
-                            ball.style.height = '34px';
-                            ball.style.fontSize = '14px';
+                            ball.style.width = '44px';
+                            ball.style.height = '44px';
+                            ball.style.fontSize = '18px';
                             ballsRow.appendChild(ball);
                         });
                         groupWrapper.appendChild(ballsRow);
