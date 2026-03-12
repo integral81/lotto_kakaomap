@@ -5551,12 +5551,13 @@
                     }
                 }
 
-                // [V1.5.7 Fix]: Dynamically toggle between counting unique stores vs total tickets.
-                // If the user applies a frequency filter or exclude closed filter, count UNIQUE STORES
-                // to prevent the number from ballooning to total historical tickets (e.g., 8631).
-                // If only viewing specific rounds/methods, count ACTUAL TICKETS to include multiple winners 
-                // from the same store (like Donghaeng Lottery).
-                const useStoreCount = f10 || f5 || f3 || f1 || excludeClosed;
+                // [V1.5.8 Fix]: 철저한 논리적 모순 방지를 위한 동적 카운트. 
+                // 1. 넓은 회차 범위 (max - min > 10)를 검색할 때는 전체 판매점 개수 중 '마커(판매점) 수'를 세어 줌.
+                //    (만약 티켓 수를 세면, 전체 데이터 3,995개보다 필터링 결과가 8,631개로 폭증하는 모순 발생)
+                // 2. 좁은 범위 (단일 회차 등)를 검색할 때는 '실제 당첨 티켓 수'를 세어 줌.
+                //    (1214회의 경우 동행복권 다중 당첨자가 존재하므로, 판매점은 11개여도 결과는 12명이 나와야 정상)
+                const isNarrowRange = (maxR - minR) <= 10;
+                const useStoreCount = !isNarrowRange;
                 let totalTickets = 0;
 
                 if (useStoreCount) {
