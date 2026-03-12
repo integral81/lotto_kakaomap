@@ -5551,32 +5551,9 @@
                     }
                 }
 
-                // [V1.5.5 Fix]: Count total winning tickets (markers) instead of unique store locations.
-                let totalTickets = 0;
-                filtered.forEach(d => {
-                    if (d.rounds && d.rounds.length > 0) {
-                        const matchingRounds = d.rounds.filter(rnd => {
-                            const r = rnd.r;
-                            const m = rnd.m || '';
-                            if (r < minR || r > maxR) return false;
-
-                            const auto = document.getElementById('methodAuto').checked;
-                            const manual = document.getElementById('methodManual').checked;
-                            const semi = document.getElementById('methodSemi').checked;
-                            const site = document.getElementById('methodSite') ? document.getElementById('methodSite').checked : true;
-
-                            if (m.includes('자동') && !auto && !m.includes('반자동')) return false;
-                            if (m.includes('수동') && !manual) return false;
-                            if (m.includes('반자동') && !semi) return false;
-                            if (m.includes('사이트') && !site) return false;
-                            return true;
-                        });
-                        totalTickets += matchingRounds.length;
-                    } else if (d.r !== undefined) {
-                        // Fallback for flat data
-                        totalTickets += 1;
-                    }
-                });
+                // [V1.5.6 Fix]: Count unique store locations (filtered.length) to match the "Total Data" logic,
+                // rather than summing up thousands of historical tickets, which caused confusion.
+                let totalTickets = filtered.length;
 
                 document.getElementById('filteredCount').innerText = totalTickets.toLocaleString();
                 updateMarkers(filtered);
