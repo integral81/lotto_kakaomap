@@ -5551,9 +5551,38 @@
                     }
                 }
 
-                // [V1.5.6 Fix]: Count unique store locations (filtered.length) to match the "Total Data" logic,
-                // rather than summing up thousands of historical tickets, which caused confusion.
-                let totalTickets = filtered.length;
+                // [V1.5.7 Fix]: Dynamically toggle between counting unique stores vs total tickets.
+                // If the user applies a frequency filter or exclude closed filter, count UNIQUE STORES
+                // to prevent the number from ballooning to total historical tickets (e.g., 8631).
+                // If only viewing specific rounds/methods, count ACTUAL TICKETS to include multiple winners 
+                // from the same store (like Donghaeng Lottery).
+                const useStoreCount = f10 || f5 || f3 || f1 || excludeClosed;
+                let totalTickets = 0;
+
+                if (useStoreCount) {
+                    totalTickets = filtered.length; // Count unique store markers
+                } else {
+                    // Count actual winning tickets
+                    filtered.forEach(d => {
+                        if (d.rounds && d.rounds.length > 0) {
+                            const matchingRounds = d.rounds.filter(rnd => {
+                                const r = rnd.r;
+                                const m = rnd.m || '';
+                                if (r < minR || r > maxR) return false;
+
+                                if (m.includes('자동') && !auto && !m.includes('반자동')) return false;
+                                if (m.includes('수동') && !manual) return false;
+                                if (m.includes('반자동') && !semi) return false;
+                                if (m.includes('사이트') && !site) return false;
+                                return true;
+                            });
+                            totalTickets += matchingRounds.length;
+                        } else if (d.r !== undefined) {
+                            // Fallback for flat structure
+                            totalTickets += 1;
+                        }
+                    });
+                }
 
                 document.getElementById('filteredCount').innerText = totalTickets.toLocaleString();
                 updateMarkers(filtered);
