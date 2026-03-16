@@ -1,4 +1,4 @@
-﻿"""
+"""
 로또 자동 업데이트 스크립트 v4.0 (Supabase 연동 버전)
 방식: 네이버/구글 검색 기반 (동행복권 직접 스크래핑 제거)
 스케줄: 매주 토요일 21:10 KST (UTC 12:10) 시작, 10분 간격 재시도
@@ -44,7 +44,7 @@ def fetch_winning_numbers_naver(draw_no):
         r = requests.get(url, headers=NAVER_HEADERS, timeout=15)
         soup = BeautifulSoup(r.text, "html.parser")
         text = soup.get_text(separator=" ")
-        pattern = r'(?:당첨번호|당첨 번호|당첨|로또)[^\d]*(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})'
+        pattern = r'(?:당첨번호|당첨 번호)\D{0,15}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})'
         for m in re.finditer(pattern, text):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
@@ -70,7 +70,7 @@ def fetch_winning_numbers_google(draw_no):
         r = requests.get(url, headers=google_headers, timeout=15)
         soup = BeautifulSoup(r.text, "html.parser")
         text = soup.get_text(separator=" ")
-        pattern = r'(?:당첨번호|당첨 번호|당첨|로또)[^\d]*(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})[^\d]+(\d{1,2})'
+        pattern = r'(?:당첨번호|당첨 번호)\D{0,15}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})\D{1,5}?(\d{1,2})'
         for m in re.finditer(pattern, text):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
@@ -170,7 +170,7 @@ def fetch_stores_naver_news(draw_no):
                     if name not in [r['n'] for r in records]:
                         records.append({"n": name, "a": addr, "m": method, "r": draw_no})
                 
-                if len(records) >= 10: break
+                if len(records) >= 40: break
                 time.sleep(random.uniform(0.5, 1.0))
             except Exception as e:
                 print(f"[News article] {link} 파싱 실패: {e}")
