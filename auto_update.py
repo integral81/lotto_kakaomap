@@ -118,8 +118,8 @@ def fetch_stores_naver(draw_no):
     return records
 
 def fetch_stores_naver_news(draw_no):
-    records = []
-    # Search for news articles specifically listing stores
+    # Store results as {(name, address): {"method": str, "count": int}}
+    stores_map = {}
     query = f"로또 {draw_no}회 1등 판매점"
     url = f"https://search.naver.com/search.naver?where=news&query={requests.utils.quote(query)}&sort=1"
     
@@ -135,52 +135,63 @@ def fetch_stores_naver_news(draw_no):
         news_links = list(set(news_links))
         print(f"[News] {len(news_links)}개 기사 링크 발견")
         
-        for link in news_links[:5]:
+        for link in news_links[:10]:
             try:
                 nr = requests.get(link, headers=NAVER_HEADERS, timeout=12)
                 nr.encoding = 'utf-8'
                 nsoup = BeautifulSoup(nr.text, "html.parser")
-                
-                # Broaden search for content container
                 content = nsoup.find('article', id='dic_area') or nsoup.find('div', id='dic_area') or \
                           nsoup.find('div', id='articleBodyContents') or nsoup.find('div', class_='_article_body')
-                
                 if not content: continue
                 
                 text = content.get_text(separator="\n")
-                
-                # Look for patterns like "▲상호명(주소)" or "상호명(지역) 자동"
-                # Updated Regex to be more inclusive of various store names and full addresses
-                matches = re.finditer(r'(?:▲|△|■|[\d]+\.)\s*([가-힣\w\d&/\s]+)\(([^)]+)\)', text)
+                # regex to find store name and address hint within parentheticals
+                # Added more flexible prefix or even no prefix for some articles
+                matches = re.finditer(r'(?:▲|△|■|[\d]+\.)?\s*([가-힣\w\d&/\s]{2,20})\(([^)]+)\)', text)
                 for m in matches:
                     name = m.group(1).strip()
                     addr = m.group(2).strip()
+                    if len(name) < 2 or any(w in name for w in ["추첨", "결과", "당첨", "발표", "로또제", "회차"]): continue
                     
-                    # Basic validation and cleaning
-                    if len(name) < 2 or "추첨" in name or "결과" in name: continue
-                    
-                    # Try to find method (자동/수동) in nearby text or default
-                    # For simplicity, we search the whole text for this specific store name + method
                     method = "자동"
-                    if f"{name}" in text:
-                        context = text[max(0, text.find(name)-20):text.find(name)+100]
-                        if "수동" in context: method = "수동"
-                        elif "반자동" in context: method = "반자동"
+                    # multiplier detection
+                    multiplier = 1
+                    full_match_text = m.group(0)
                     
-                    if name not in [r['n'] for r in records]:
-                        records.append({"n": name, "a": addr, "m": method, "r": draw_no})
+                    # Search around the match for count info
+                    idx = text.find(full_match_text)
+                    context_snippet = text[max(0, idx-20) : min(len(text), idx+200)]
+                    
+                    if "수동" in context_snippet: method = "수동"
+                    elif "반자동" in context_snippet: method = "반자동"
+                    
+                    m_count = re.search(r'(?:1등\s+)?(\d+)(?:명|인)', context_snippet)
+                    if m_count:
+                        count_val = int(m_count.group(1))
+                        if 1 < count_val < 10: multiplier = count_val
+                    elif "2명이" in context_snippet or "두 명" in context_snippet:
+                        multiplier = 2
+                    
+                    key = (name, addr)
+                    if key not in stores_map:
+                        stores_map[key] = {"m": method, "c": multiplier}
+                    else:
+                        # Keep the maximum count found across articles
+                        stores_map[key]["c"] = max(stores_map[key]["c"], multiplier)
                 
-                if len(records) >= 40: break
-                time.sleep(random.uniform(0.5, 1.0))
+                time.sleep(random.uniform(0.3, 0.7))
             except Exception as e:
                 print(f"[News article] {link} 파싱 실패: {e}")
                 
     except Exception as e:
         print(f"[News] 검색 실패: {e}")
     
-    # Filter out obvious non-store entries
-    records = [r for r in records if len(r['n']) >= 2 and "동행복권" not in r['n']]
-    print(f"[News] {len(records)}개 판매점 추출 완료")
+    records = []
+    for (name, addr), info in stores_map.items():
+        for _ in range(info["c"]):
+            records.append({"n": name, "a": addr, "m": info["m"], "r": draw_no})
+            
+    print(f"[News] 총 {len(stores_map)}개 판매점에서 {len(records)}명의 1등 당첨자 추출 완료")
     return records
 
 # ===================================================================
