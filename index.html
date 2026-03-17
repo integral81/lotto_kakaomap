@@ -6007,8 +6007,8 @@
 
                     for (let i = 0; i < markerCount; i++) {
                         // [V1.2 Fix]: Add microscopic offset (wobble) so Kakao Clusterer counts them as distinct markers
-                        // Increased to 0.0001 (~10m) for absolute certainty.
-                        const wobble = i * 0.0001;
+                        // Increased slightly from 0.0001 to 0.00015 for absolute cluster distinction.
+                        const wobble = i * 0.00015;
                         const marker = new kakao.maps.Marker({
                             position: new kakao.maps.LatLng(shop.lat + wobble, shop.lng + wobble),
                             image: markerImg,
