@@ -124,18 +124,13 @@ def fetch_stores_naver_news(draw_no):
     url = f"https://search.naver.com/search.naver?where=news&query={requests.utils.quote(query)}&sort=1"
     
     try:
-        r = requests.get(url, headers=NAVER_HEADERS, timeout=15)
+        r = requests.get(url, headers=NAVER_HEADERS, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
-        news_links = []
-        for a in soup.find_all("a", href=True):
-            href = a["href"]
-            if ("news.naver.com" in href or "n.news.naver.com" in href) and "promotion" not in href.lower():
-                news_links.append(href)
+        links = [a['href'] for a in soup.select('a.news_tit')][:5]
         
-        news_links = list(set(news_links))
-        print(f"[News] {len(news_links)}개 기사 링크 발견")
+        blacklist = ["홈페이지", "뉴스", "기자", "기사", "로또복권", "동행복권", "인터넷", "판매점", "당첨", "추첨", "연합뉴스"]
         
-        for link in news_links[:10]:
+        for link in links:
             try:
                 nr = requests.get(link, headers=NAVER_HEADERS, timeout=12)
                 nr.encoding = 'utf-8'
@@ -146,37 +141,40 @@ def fetch_stores_naver_news(draw_no):
                 
                 text = content.get_text(separator="\n")
                 # regex to find store name and address hint within parentheticals
-                # Added more flexible prefix or even no prefix for some articles
-                matches = re.finditer(r'(?:▲|△|■|[\d]+\.)?\s*([가-힣\w\d&/\s]{2,20})\(([^)]+)\)', text)
-                for m in matches:
-                    name = m.group(1).strip()
-                    addr = m.group(2).strip()
-                    if len(name) < 2 or any(w in name for w in ["추첨", "결과", "당첨", "발표", "로또제", "회차"]): continue
+                matches = list(re.finditer(r'(?:▲|△|■|[\d]+\.)\s*([가-힣\w\d&/\s]+)\(([^)]+)\)', text))
+                
+                for i, m in enumerate(matches):
+                    p1 = m.group(1).strip()
+                    p2 = m.group(2).strip()
                     
-                    method = "자동"
-                    # multiplier detection
+                    if any(word in p1 for word in blacklist) and len(p1) < 10: continue
+                    if len(p1) < 2 or len(p2) < 2: continue
+
+                    if any(x in p1 for x in ['시 ', '구 ', '군 ', '읍 ', '면 ', '리 ']) or re.search(r'\d+-\d+', p1):
+                        name, addr = p2, p1
+                    else:
+                        name, addr = p1, p2
+                    
+                    if any(word in name for word in ["홈페이지", "뉴스1", "연합뉴스", "기자"]): continue
+
                     multiplier = 1
-                    full_match_text = m.group(0)
+                    search_end = matches[i+1].start() if i + 1 < len(matches) else m.end() + 150
+                    next_text = text[m.end():search_end]
                     
-                    # Search around the match for count info
-                    idx = text.find(full_match_text)
-                    context_snippet = text[max(0, idx-20) : min(len(text), idx+200)]
-                    
-                    if "수동" in context_snippet: method = "수동"
-                    elif "반자동" in context_snippet: method = "반자동"
-                    
-                    m_count = re.search(r'(?:1등\s+)?(\d+)(?:명|인)', context_snippet)
-                    if m_count:
-                        count_val = int(m_count.group(1))
-                        if 1 < count_val < 10: multiplier = count_val
-                    elif "2명이" in context_snippet or "두 명" in context_snippet:
-                        multiplier = 2
+                    if re.search(r'(2|3|4|5)\s*(명|인)', next_text) or "동시에" in next_text:
+                        m_match = re.search(r'(\d)\s*(?:명|인)', next_text)
+                        if m_match:
+                            multiplier = int(m_match.group(1))
+                        elif "2명" in next_text:
+                            multiplier = 2
+
+                    method = "수동" if "수동" in text[max(0, m.start()-50):search_end] else "자동"
+                    if "반자동" in text[max(0, m.start()-50):search_end]: method = "반자동"
                     
                     key = (name, addr)
                     if key not in stores_map:
                         stores_map[key] = {"m": method, "c": multiplier}
                     else:
-                        # Keep the maximum count found across articles
                         stores_map[key]["c"] = max(stores_map[key]["c"], multiplier)
                 
                 time.sleep(random.uniform(0.3, 0.7))
@@ -240,6 +238,16 @@ def get_current_round_from_supabase():
 # ===================================================================
 # 4. Supabase 저장 로직
 # ===================================================================
+def _sb_get(url, headers):
+    """Supabase GET 헬퍼"""
+    try:
+        r = requests.get(url, headers=headers, timeout=10)
+        r.raise_for_status()
+        return r.json()
+    except Exception as e:
+        print(f"[Supabase GET] 오류: {e}")
+        return []
+
 def save_to_supabase(target_round, winning_nums, records):
     headers = {
         "apikey": SUPABASE_KEY,
@@ -247,8 +255,23 @@ def save_to_supabase(target_round, winning_nums, records):
         "Content-Type": "application/json",
         "Prefer": "resolution=merge-duplicates,return=representation"
     }
-    
-    # 1. lotto_rounds 업로드
+    read_headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+    }
+
+    # ── [안전장치 1] 이미 해당 round가 lotto_winners에 있으면 스킵 ──────────
+    existing = _sb_get(
+        f"{SUPABASE_URL}/rest/v1/lotto_winners?select=id&round=eq.{target_round}",
+        read_headers
+    )
+    if existing:
+        print(f"[Supabase] ⚠️  {target_round}회 lotto_winners 이미 {len(existing)}개 존재 → 중복 삽입 방지, 스킵")
+        # 자가검증만 실행 후 반환
+        _verify_round(target_round, len(records), read_headers)
+        return True
+
+    # ── 1. lotto_rounds 업로드 ─────────────────────────────────────────────
     if winning_nums and len(winning_nums) >= 7:
         round_data = {
             "round": target_round, "num1": winning_nums[0], "num2": winning_nums[1],
@@ -263,11 +286,12 @@ def save_to_supabase(target_round, winning_nums, records):
             print(f"[Supabase] 당첨번호 업로드 실패: {e}")
             return False
 
-    # 2. lotto_stores 및 lotto_winners 등록
+    # ── 2. lotto_stores 및 lotto_winners 등록 ─────────────────────────────
+    inserted_count = 0
     for rec in records:
         address = rec.get("a", "").strip()
         if not address: address = rec["n"]
-            
+
         store_data = {
             "name": rec["n"], "address": address,
             "lat": float(rec.get("lat") or 0.0), "lng": float(rec.get("lng") or 0.0),
@@ -278,19 +302,46 @@ def save_to_supabase(target_round, winning_nums, records):
             r = requests.post(url, headers=headers, json=store_data, verify=certifi.where())
             r.raise_for_status()
             res_data = r.json()
-            if res_data:
-                store_id = res_data[0]['id']
-                # 3. lotto_winners 업로드
-                winner_data = {"store_id": store_id, "round": target_round, "method": rec.get("m", "자동")}
-                w_url = f"{SUPABASE_URL}/rest/v1/lotto_winners"
-                w_headers = dict(headers)
-                if 'Prefer' in w_headers: del w_headers['Prefer'] # Return is not needed for winners
-                requests.post(w_url, headers=w_headers, json=winner_data, verify=certifi.where()).raise_for_status()
+            if not res_data:
+                print(f"[Supabase] ⚠️  {rec['n']} store upsert 응답 없음")
+                continue
+            store_id = res_data[0]['id']
+
+            # ── [안전장치 2] 이 상점의 해당 round winner가 이미 있으면 스킵 ──
+            # (독천 로또처럼 2명 당첨인 경우는 같은 store_id로 2개가 정상이므로
+            #  전체 round 단위 스킵(안전장치1)으로만 관리. 여기선 스킵 안 함)
+
+            winner_data = {"store_id": store_id, "round": target_round, "method": rec.get("m", "자동")}
+            w_url = f"{SUPABASE_URL}/rest/v1/lotto_winners"
+            w_headers = dict(headers)
+            if 'Prefer' in w_headers: del w_headers['Prefer']
+            requests.post(w_url, headers=w_headers, json=winner_data, verify=certifi.where()).raise_for_status()
+            inserted_count += 1
         except Exception as e:
             print(f"[Supabase] 상점/당첨자 전송 실패 ({rec['n']}): {e}")
-            
-    print(f"[Supabase] {len(records)}개의 1등 매장 정보(lotto_stores/winners) 등록 완료")
+
+    print(f"[Supabase] {inserted_count}/{len(records)}개 1등 매장 정보(lotto_stores/winners) 등록 완료")
+
+    # ── [안전장치 3] 저장 후 자가검증 ──────────────────────────────────────
+    _verify_round(target_round, len(records), read_headers)
     return True
+
+
+def _verify_round(target_round, expected_count, read_headers):
+    """저장 후 DB 실제 카운트 검증 및 불일치 시 경고"""
+    actual = _sb_get(
+        f"{SUPABASE_URL}/rest/v1/lotto_winners?select=id,lotto_stores(name)&round=eq.{target_round}",
+        read_headers
+    )
+    actual_count = len(actual) if isinstance(actual, list) else 0
+    if actual_count == expected_count:
+        print(f"[검증] ✅ {target_round}회 DB 검증 성공: {actual_count}명 (예상 {expected_count}명)")
+    else:
+        print(f"[검증] ❌ {target_round}회 DB 불일치! DB={actual_count}명 vs 수집={expected_count}명")
+        print("[검증] 등록된 상점 목록:")
+        for w in (actual if isinstance(actual, list) else []):
+            store = w.get('lotto_stores') or {}
+            print(f"  - {store.get('name', '?')} (winner_id={w.get('id','?')[:8]}...)")
 
 # ===================================================================
 # 5. 메인 업데이트 로직
