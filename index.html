@@ -1994,6 +1994,7 @@
             background: #f1f3f4;
             /* Google light gray */
             border-radius: 30px;
+            overflow: hidden; /* iOS 모바일 커서 밖 삐짐 방지 */
             box-shadow: none;
             /* Flat look like Google */
             padding: 5px 15px;
@@ -2083,6 +2084,8 @@
             color: #333;
             outline: none;
             font-family: inherit;
+            caret-color: #5D31D4; /* 커서 색상 명시 (iOS 밖 삐짐 방지) */
+            min-width: 0; /* flex shrink 허용 */
         }
 
         .portal-search-input::placeholder {
