@@ -6006,16 +6006,13 @@
                     const isNarrowRange = (maxR - minR) <= 10;
                     const shouldForceShow = !isNarrowRange && isHighWinShop && matchingRounds.length === 0;
 
-                    const markerCount = shouldForceShow ? 1 : matchingRounds.length;
+                    const markerCount = 1; // [Fix] 상점당 마커 1개만 생성 (회차별 생성 시 wobble 누적으로 수백m 오프셋 발생 버그)
 
                     for (let i = 0; i < markerCount; i++) {
-                        // [V1.2 Fix]: Add microscopic offset (wobble) so Kakao Clusterer counts them as distinct markers
-                        // Increased slightly from 0.0001 to 0.00015 for absolute cluster distinction.
-                        const wobble = i * 0.00015;
                         const marker = new kakao.maps.Marker({
-                            position: new kakao.maps.LatLng(shop.lat + wobble, shop.lng + wobble),
+                            position: new kakao.maps.LatLng(shop.lat, shop.lng),
                             image: markerImg,
-                            zIndex: i === 0 ? 10 : 1 // First marker is principal
+                            zIndex: 10
                         });
                         marker.shopData = shop;
 
