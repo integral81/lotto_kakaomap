@@ -22,8 +22,8 @@ CACHE_FILE = "geocoded_cache_healthy.xlsx"
 KAKAO_API_KEY = os.environ.get('KAKAO_REST_API_KEY', "a6b27b6dab16c7e3459bb9589bf1269d") # Prefer Env Var
 INTERNET_LOTTERY_LAT, INTERNET_LOTTERY_LNG = 37.4831, 127.0225 # Near Donghaeng Lottery HQ
 
-SUPABASE_URL = "https://sdvrijpwwpqgaivfutjm.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnJpanB3d3BxZ2FpdmZ1dGptIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjcwNDcxNCwiZXhwIjoyMDg4MjgwNzE0fQ.IkyRMb5FfjfRWfAwp2gaPIvnsKJvEM_y8GrgdJhqLyA"
+SUPABASE_URL = os.environ.get('SUPABASE_URL', "https://sdvrijpwwpqgaivfutjm.supabase.co")
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnJpanB3d3BxZ2FpdmZ1dGptIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjcwNDcxNCwiZXhwIjoyMDg4MjgwNzE0fQ.IkyRMb5FfjfRWfAwp2gaPIvnsKJvEM_y8GrgdJhqLyA")
 
 NAVER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",

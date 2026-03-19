@@ -2,21 +2,19 @@ name: Weekly Lotto Data Update
 
 on:
   schedule:
-    # ===== 1214회 전용: 2026-03-07 토요일 22:50 KST (UTC 13:50) =====
-    - cron: '50 13 7 3 6'
-    # ===== 1215회부터 평시: 매주 토요일 21:10 KST (UTC 12:10) - 상시 활성 =====
+    # 매주 토요일 21:10 KST (UTC 12:10) 실행
     - cron: '10 12 * * 6'
   workflow_dispatch: # 수동 트리거 허용
 
-# 동시 실행 방지: 이미 실행 중인 job이 있으면 새 trigger는 자동 취소
+# 동시 실행 방지
 concurrency:
   group: lotto-weekly-update
-  cancel-in-progress: false  # 실행 중인 job 보호 (새 trigger를 취소)
+  cancel-in-progress: false
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 180  # 최대 3시간 (10분×6=1시간 + TV편성표 확인 대기 + 추가 재시도)
+    timeout-minutes: 180  # 최대 3시간 (10분×18회 재시도)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,63 +27,55 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 pandas openpyxl
+          pip install requests beautifulsoup4 pandas openpyxl certifi
 
-      - name: Run auto-update (10min interval, TV delay detection)
+      - name: Run auto-update (Supabase 직접 저장, 10분 간격 재시도)
         env:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
-          # 설정
-          PHASE1_RETRIES=6        # 1단계: 10분×6 = 1시간 시도
-          PHASE2_RETRIES=12       # 2단계: TV편성표 지연 감지 후 1시간 추가 시도
+          PHASE1_RETRIES=6
+          PHASE2_RETRIES=12
           ATTEMPT=0
           SUCCESS=false
-          TV_CHECKED=false
 
           echo "================================================"
           echo "로또 자동 업데이트 시작: $(date '+%Y-%m-%d %H:%M:%S UTC')"
           echo "================================================"
 
-          # ===== 1단계: 기본 시도 (최대 6회 = 1시간) =====
+          # 1단계: 기본 시도 (10분×6 = 1시간)
           while [ $ATTEMPT -lt $PHASE1_RETRIES ] && [ "$SUCCESS" = "false" ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo ""
-            echo "--- [1단계 시도 $ATTEMPT/$PHASE1_RETRIES] $(date '+%H:%M:%S UTC') ---"
-
+            echo "--- [1단계 $ATTEMPT/$PHASE1_RETRIES] $(date '+%H:%M:%S UTC') ---"
             if python auto_update.py; then
               SUCCESS=true
-              echo "✅ 업데이트 성공! (1단계 시도 $ATTEMPT)"
+              echo "✅ 업데이트 성공!"
             else
-              echo "❌ 실패 - 아직 발표 전이거나 데이터 없음"
-              if [ $ATTEMPT -lt $PHASE1_RETRIES ]; then
-                echo "⏳ 10분 후 재시도..."
-                sleep 600
-              fi
+              echo "❌ 실패 - 아직 미발표 상태"
+              [ $ATTEMPT -lt $PHASE1_RETRIES ] && echo "⏳ 10분 후 재시도..." && sleep 600
             fi
           done
 
-          # ===== 2단계: 1시간 실패 시 TV편성표 확인 =====
+          # 2단계: TV 편성 지연 확인 후 추가 재시도
           if [ "$SUCCESS" = "false" ]; then
             echo ""
-            echo "================================================"
-            echo "⚠️  1단계 1시간 실패 → TV편성표 지연 감지 확인 중..."
-            echo "================================================"
+            echo "⚠️  1시간 실패 → TV편성표 지연 확인 중..."
             python - << 'PYCHECK'
           import requests
           from bs4 import BeautifulSoup
-          import re, sys
+          import sys
           headers = {"User-Agent": "Mozilla/5.0", "Accept-Language": "ko-KR,ko;q=0.9"}
           try:
-              q = "KBS2 토요일 TV편성표 로또"
-              r = requests.get(f"https://search.naver.com/search.naver?query={requests.utils.quote(q)}", headers=headers, timeout=15)
+              r = requests.get("https://search.naver.com/search.naver?query=KBS2+토요일+TV편성표+로또", headers=headers, timeout=15)
               text = BeautifulSoup(r.text, "html.parser").get_text()
-              delay_words = ["중계", "특집", "올림픽", "월드컵", "야구", "축구", "농구"]
-              found = [w for w in delay_words if w in text]
+              found = [w for w in ["중계","특집","올림픽","월드컵","야구","축구","농구"] if w in text]
               if found:
                   print(f"DELAY_DETECTED: {found}")
                   sys.exit(2)
               else:
-                  print("NO_DELAY: 정상 편성 확인")
+                  print("NO_DELAY: 정상 편성")
                   sys.exit(0)
           except Exception as e:
               print(f"CHECK_FAILED: {e}")
@@ -94,47 +84,30 @@ jobs:
 
             TV_EXIT=$?
             if [ $TV_EXIT -eq 2 ]; then
-              echo "📺 TV 중계로 인한 로또 발표 지연 감지!"
-              echo "⏳ 60분 추가 대기 후 재시도 (발표 시간 + 30분 기준)..."
+              echo "📺 TV 중계 지연 감지 → 60분 추가 대기..."
               sleep 3600
             else
-              echo "📺 정상 편성 - 데이터 미발표 상태로 계속 재시도"
-              echo "⏳ 10분 대기..."
+              echo "📺 정상 편성 → 10분 대기..."
               sleep 600
             fi
 
-            # ===== 2단계 추가 재시도 =====
             ATTEMPT2=0
             while [ $ATTEMPT2 -lt $PHASE2_RETRIES ] && [ "$SUCCESS" = "false" ]; do
               ATTEMPT2=$((ATTEMPT2 + 1))
               echo ""
-              echo "--- [2단계 시도 $ATTEMPT2/$PHASE2_RETRIES] $(date '+%H:%M:%S UTC') ---"
-
+              echo "--- [2단계 $ATTEMPT2/$PHASE2_RETRIES] $(date '+%H:%M:%S UTC') ---"
               if python auto_update.py; then
                 SUCCESS=true
-                echo "✅ 업데이트 성공! (2단계 시도 $ATTEMPT2)"
+                echo "✅ 업데이트 성공!"
               else
                 echo "❌ 실패"
-                if [ $ATTEMPT2 -lt $PHASE2_RETRIES ]; then
-                  echo "⏳ 10분 후 재시도..."
-                  sleep 600
-                fi
+                [ $ATTEMPT2 -lt $PHASE2_RETRIES ] && echo "⏳ 10분 후 재시도..." && sleep 600
               fi
             done
           fi
 
           if [ "$SUCCESS" = "false" ]; then
             echo ""
-            echo "================================================"
-            echo "❌ 모든 시도 실패. 수동 업데이트 필요."
-            echo "================================================"
+            echo "❌ 모든 시도 실패. 수동 업데이트가 필요합니다."
             exit 1
           fi
-
-      - name: Commit and push changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add lotto_data.json lotto_data.js lotto_history.json
-          git diff --staged --quiet || git commit -m "Data: Weekly update - $(date '+%Y-%m-%d %H:%M UTC')"
-          git push
