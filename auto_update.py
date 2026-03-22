@@ -120,76 +120,99 @@ def fetch_stores_naver(draw_no):
 def fetch_stores_naver_news(draw_no):
     # Store results as {(name, address): {"method": str, "count": int}}
     stores_map = {}
-    query = f"로또 {draw_no}회 1등 판매점"
-    url = f"https://search.naver.com/search.naver?where=news&query={requests.utils.quote(query)}&sort=1"
+    queries = [
+        f"로또 {draw_no}회 1등 배출점",
+        f"로또 {draw_no}회 1등 판매점",
+        f"{draw_no}회 로또 당첨지역"
+    ]
     
-    try:
-        r = requests.get(url, headers=NAVER_HEADERS, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
-        links = [a['href'] for a in soup.select('a.news_tit')][:5]
-        
-        blacklist = ["홈페이지", "뉴스", "기자", "기사", "로또복권", "동행복권", "인터넷", "판매점", "당첨", "추첨", "연합뉴스"]
-        
-        for link in links:
-            try:
-                nr = requests.get(link, headers=NAVER_HEADERS, timeout=12)
-                nr.encoding = 'utf-8'
-                nsoup = BeautifulSoup(nr.text, "html.parser")
-                content = nsoup.find('article', id='dic_area') or nsoup.find('div', id='dic_area') or \
-                          nsoup.find('div', id='articleBodyContents') or nsoup.find('div', class_='_article_body')
-                if not content: continue
+    links = []
+    for query in queries:
+        url = f"https://search.naver.com/search.naver?where=news&query={requests.utils.quote(query)}&sort=1"
+        try:
+            r = requests.get(url, headers=NAVER_HEADERS, timeout=10)
+            soup = BeautifulSoup(r.text, "html.parser")
+            
+            # UI 변경(클래스명 난독화) 대응: a.news_tit 대신 URL 구조로 뉴스 링크 추출
+            for a in soup.find_all('a', href=True):
+                href = a['href']
+                # n.news.naver.com 계열 링크 추출
+                if 'news.naver.com' in href and 'article' in href:
+                    if href not in links:
+                        links.append(href)
+            
+            if len(links) >= 5:
+                break
+        except Exception as e:
+            print(f"[News] {query} 검색 실패: {e}")
+            
+    links = links[:5]
+    
+    blacklist = ["홈페이지", "뉴스", "기자", "기사", "로또복권", "동행복권", "인터넷", "판매점", "당첨", "추첨", "연합뉴스"]
+    
+    best_stores_map = {}
+    
+    for link in links:
+        stores_map = {}
+        try:
+            nr = requests.get(link, headers=NAVER_HEADERS, timeout=12)
+            nr.encoding = 'utf-8'
+            nsoup = BeautifulSoup(nr.text, "html.parser")
+            content = nsoup.find('article', id='dic_area') or nsoup.find('div', id='dic_area') or \
+                      nsoup.find('div', id='articleBodyContents') or nsoup.find('div', class_='_article_body')
+            if not content: continue
                 
-                text = content.get_text(separator="\n")
-                # regex to find store name and address hint within parentheticals
-                matches = list(re.finditer(r'(?:▲|△|■|[\d]+\.)\s*([가-힣\w\d&/\s]+)\(([^)]+)\)', text))
+            text = content.get_text(separator="\n")
+            # regex to find store name and address hint within parentheticals
+            matches = list(re.finditer(r'(?:▲|△|■|[\d]+\.)\s*([가-힣\w\d&/\s()]+)\(([^)]+)\)', text))
                 
-                for i, m in enumerate(matches):
-                    p1 = m.group(1).strip()
-                    p2 = m.group(2).strip()
+            for i, m in enumerate(matches):
+                p1 = m.group(1).strip()
+                p2 = m.group(2).strip()
                     
-                    if any(word in p1 for word in blacklist) and len(p1) < 10: continue
-                    if len(p1) < 2 or len(p2) < 2: continue
+                if any(word in p1 for word in blacklist) and len(p1) < 10: continue
+                if len(p1) < 2 or len(p2) < 2: continue
 
-                    if any(x in p1 for x in ['시 ', '구 ', '군 ', '읍 ', '면 ', '리 ']) or re.search(r'\d+-\d+', p1):
-                        name, addr = p2, p1
-                    else:
-                        name, addr = p1, p2
+                if any(x in p1 for x in ['시 ', '구 ', '군 ', '읍 ', '면 ', '리 ']) or re.search(r'\d+-\d+', p1):
+                    name, addr = p2, p1
+                else:
+                    name, addr = p1, p2
                     
-                    if any(word in name for word in ["홈페이지", "뉴스1", "연합뉴스", "기자"]): continue
+                if any(word in name for word in ["홈페이지", "뉴스1", "연합뉴스", "기자"]): continue
 
-                    multiplier = 1
-                    search_end = matches[i+1].start() if i + 1 < len(matches) else m.end() + 150
-                    next_text = text[m.end():search_end]
+                multiplier = 1
+                search_end = matches[i+1].start() if i + 1 < len(matches) else m.end() + 150
+                next_text = text[m.end():search_end]
                     
-                    if re.search(r'(2|3|4|5)\s*(명|인)', next_text) or "동시에" in next_text:
-                        m_match = re.search(r'(\d)\s*(?:명|인)', next_text)
-                        if m_match:
-                            multiplier = int(m_match.group(1))
-                        elif "2명" in next_text:
-                            multiplier = 2
+                if re.search(r'(2|3|4|5)\s*(명|인|게임|장|번|건)', next_text) or "동시에" in next_text:
+                    m_match = re.search(r'(\d)\s*(?:명|인|게임|장|번|건)', next_text)
+                    if m_match:
+                        multiplier = int(m_match.group(1))
+                    elif "2명" in next_text or "2게임" in next_text or "2건" in next_text:
+                        multiplier = 2
 
-                    method = "수동" if "수동" in text[max(0, m.start()-50):search_end] else "자동"
-                    if "반자동" in text[max(0, m.start()-50):search_end]: method = "반자동"
+                method = "수동" if "수동" in text[max(0, m.start()-50):search_end] else "자동"
+                if "반자동" in text[max(0, m.start()-50):search_end]: method = "반자동"
                     
-                    key = (name, addr)
-                    if key not in stores_map:
-                        stores_map[key] = {"m": method, "c": multiplier}
-                    else:
-                        stores_map[key]["c"] = max(stores_map[key]["c"], multiplier)
+                key = (name, addr)
+                if key not in stores_map:
+                    stores_map[key] = {"m": method, "c": multiplier}
+                else:
+                    stores_map[key]["c"] = max(stores_map[key]["c"], multiplier)
+            
+            if len(stores_map) > len(best_stores_map):
+                best_stores_map = stores_map
                 
-                time.sleep(random.uniform(0.3, 0.7))
-            except Exception as e:
-                print(f"[News article] {link} 파싱 실패: {e}")
-                
-    except Exception as e:
-        print(f"[News] 검색 실패: {e}")
+            time.sleep(random.uniform(0.3, 0.7))
+        except Exception as e:
+            print(f"[News article] {link} 파싱 실패: {e}")
     
     records = []
-    for (name, addr), info in stores_map.items():
+    for (name, addr), info in best_stores_map.items():
         for _ in range(info["c"]):
             records.append({"n": name, "a": addr, "m": info["m"], "r": draw_no})
             
-    print(f"[News] 총 {len(stores_map)}개 판매점에서 {len(records)}명의 1등 당첨자 추출 완료")
+    print(f"[News] 총 {len(best_stores_map)}개 판매점에서 {len(records)}명의 1등 당첨자 추출 완료")
     return records
 
 # ===================================================================
