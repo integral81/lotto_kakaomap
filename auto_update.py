@@ -49,7 +49,7 @@ def fetch_winning_numbers_naver(draw_no):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
                 search_region = text[max(0, m.start()-100) : m.end()+200]
-                bonus_pattern = r'보너스[^\d]*(\d{1,2})'
+                bonus_pattern = r'보너스\D{0,30}?(?<!\d)(\d{1,2})(?!\d)'
                 bm = re.search(bonus_pattern, search_region)
                 if bm:
                     bonus = int(bm.group(1))
@@ -75,7 +75,7 @@ def fetch_winning_numbers_google(draw_no):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
                 search_region = text[max(0, m.start()-100) : m.end()+200]
-                bonus_pattern = r'보너스[^\d]*(\d{1,2})'
+                bonus_pattern = r'보너스\D{0,30}?(?<!\d)(\d{1,2})(?!\d)'
                 bm = re.search(bonus_pattern, search_region)
                 if bm:
                     bonus = int(bm.group(1))
