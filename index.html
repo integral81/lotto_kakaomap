@@ -6006,7 +6006,12 @@
                     const isNarrowRange = (maxR - minR) <= 10;
                     const shouldForceShow = !isNarrowRange && isHighWinShop && matchingRounds.length === 0;
 
-                    const markerCount = 1; // [Fix] 상점당 마커 1개만 생성 (회차별 생성 시 wobble 누적으로 수백m 오프셋 발생 버그)
+                    // [Fix] 다중 당첨점(동일점포 중복당첨)의 경우,
+                    // 좁은 회차 검색(isNarrowRange)일 때는 실제 당첨 티켓 수만큼 마커를 중복 생성하여 
+                    // 클러스터러 총 점수가 필터링 결과 숫자와 일치하게 만듭니다.
+                    // 넓은 검색일 때는 상점당 마커 1개로 유지합니다.
+                    const actualWins = matchingRounds.length > 0 ? matchingRounds.length : 1;
+                    const markerCount = isNarrowRange ? actualWins : 1;
 
                     for (let i = 0; i < markerCount; i++) {
                         const marker = new kakao.maps.Marker({
