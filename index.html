@@ -1994,14 +1994,16 @@
             background: #f1f3f4;
             /* Google light gray */
             border-radius: 30px;
-            overflow: hidden; /* iOS 모바일 커서 밖 삐짐 방지 */
+            overflow: hidden;
+            /* iOS 모바일 커서 밖 삐짐 방지 */
             box-shadow: none;
             /* Flat look like Google */
             padding: 5px 15px;
             width: 320px;
             max-width: 90%;
             transition: all 0.3s ease;
-            border: 2px solid #6A0DAD; /* KINOV Purple border for visibility */
+            border: 2px solid #6A0DAD;
+            /* KINOV Purple border for visibility */
             backdrop-filter: blur(5px);
         }
 
@@ -2084,8 +2086,10 @@
             color: #333;
             outline: none;
             font-family: inherit;
-            caret-color: #5D31D4; /* 커서 색상 명시 (iOS 밖 삐짐 방지) */
-            min-width: 0; /* flex shrink 허용 */
+            caret-color: #5D31D4;
+            /* 커서 색상 명시 (iOS 밖 삐짐 방지) */
+            min-width: 0;
+            /* flex shrink 허용 */
         }
 
         .portal-search-input::placeholder {
@@ -3237,7 +3241,8 @@
 
         /* Left Thumb (min) */
         #minRound {
-            z-index: 4; /* Higher so it stays on top of maxRound */
+            z-index: 4;
+            /* Higher so it stays on top of maxRound */
         }
 
         /* Right Thumb (max) */
@@ -3249,19 +3254,23 @@
         .multi-range-slider::-webkit-slider-thumb {
             pointer-events: all;
             border-radius: 50%;
-            height: 28px; /* Increased from 20px for easier touch */
-            width: 28px; /* Increased from 20px for easier touch */
+            height: 28px;
+            /* Increased from 20px for easier touch */
+            width: 28px;
+            /* Increased from 20px for easier touch */
             -webkit-appearance: none;
-            cursor: grabbing; /* Better UX cursor */
+            cursor: grabbing;
+            /* Better UX cursor */
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
             transition: transform 0.1s ease-out;
             /* Extra invisible border helps touch area on mobile without changing visual size */
-            border: 4px solid transparent; 
-            background-clip: padding-box; 
+            border: 4px solid transparent;
+            background-clip: padding-box;
         }
 
         .multi-range-slider::-webkit-slider-thumb:active {
-            transform: scale(1.15); /* Pop effect on grab */
+            transform: scale(1.15);
+            /* Pop effect on grab */
         }
 
         /* Based Thumb Styles for Firefox */
@@ -3273,8 +3282,8 @@
             cursor: grabbing;
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
             transition: transform 0.1s ease-out;
-            border: 4px solid transparent; 
-            background-clip: padding-box; 
+            border: 4px solid transparent;
+            background-clip: padding-box;
         }
 
         .multi-range-slider::-moz-range-thumb:active {
@@ -3286,6 +3295,7 @@
         #minRound::-webkit-slider-thumb {
             background-color: #FFD700;
         }
+
         #minRound::-moz-range-thumb {
             background-color: #FFD700;
         }
@@ -3294,6 +3304,7 @@
         #maxRound::-webkit-slider-thumb {
             background-color: #5D31D4;
         }
+
         #maxRound::-moz-range-thumb {
             background-color: #5D31D4;
         }
@@ -3323,16 +3334,26 @@
                 style="width: 100%; height: 72px; margin: 0 0 20px 0; padding: 0 20px; background: #6A0DAD; border: none; border-radius: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;"
                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(106,13,173,0.3)';"
                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.1)';">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 13px; transform: translateY(0);">
-                    <div style="width: 34.56px; height: 34.56px; border-radius: 6.5px; background: #000; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; box-shadow: inset 0 0 8.6px rgba(0,0,0,0.8), 0 2.2px 4.3px rgba(0,0,0,0.4);">
-                        <span style="color: #FFD700; font-family: 'Arial Black', 'Impact', sans-serif; font-size: 29.16px; font-weight: 900; background: linear-gradient(180deg, #FFF179 0%, #D4AF37 50%, #996A00 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-right: 1px;">K</span>
-                        <svg width="4.455" height="7.722" viewBox="0 0 10 16" style="position: absolute; left: 15.3px; top: 13.7px;">
-                            <path d="M5,0 C2.2,0 0,2.2 0,5 C0,6.9 1.1,8.5 2.6,9.3 L1.5,15.5 A0.5,0.5 0 0,0 2,16 L8,16 A0.5,0.5 0 0,0 8.5,15.5 L7.4,9.3 C8.9,8.5 10,6.9 10,5 C10,2.2 7.8,0 5,0 Z" fill="#000"/>
+                <div
+                    style="display: flex; align-items: center; justify-content: center; gap: 13px; transform: translateY(0);">
+                    <div
+                        style="width: 34.56px; height: 34.56px; border-radius: 6.5px; background: #000; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; box-shadow: inset 0 0 8.6px rgba(0,0,0,0.8), 0 2.2px 4.3px rgba(0,0,0,0.4);">
+                        <span
+                            style="color: #FFD700; font-family: 'Arial Black', 'Impact', sans-serif; font-size: 29.16px; font-weight: 900; background: linear-gradient(180deg, #FFF179 0%, #D4AF37 50%, #996A00 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-right: 1px;">K</span>
+                        <svg width="4.455" height="7.722" viewBox="0 0 10 16"
+                            style="position: absolute; left: 15.3px; top: 13.7px;">
+                            <path
+                                d="M5,0 C2.2,0 0,2.2 0,5 C0,6.9 1.1,8.5 2.6,9.3 L1.5,15.5 A0.5,0.5 0 0,0 2,16 L8,16 A0.5,0.5 0 0,0 8.5,15.5 L7.4,9.3 C8.9,8.5 10,6.9 10,5 C10,2.2 7.8,0 5,0 Z"
+                                fill="#000" />
                         </svg>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 6.5px; text-shadow: 0 2.2px 4.3px rgba(0,0,0,0.4), 0 0 8.6px rgba(255,255,255,0.2);">
-                        <span style="color: white; font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 19.44px; letter-spacing: -0.5px;">로또</span>
-                        <span style="color: white; font-family: 'Montserrat', 'Poppins', sans-serif; font-weight: 800; font-size: 19.44px; letter-spacing: -0.5px;">Navi by AI</span>
+                    <div
+                        style="display: flex; align-items: center; gap: 6.5px; text-shadow: 0 2.2px 4.3px rgba(0,0,0,0.4), 0 0 8.6px rgba(255,255,255,0.2);">
+                        <span
+                            style="color: white; font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 19.44px; letter-spacing: -0.5px;">로또</span>
+                        <span
+                            style="color: white; font-family: 'Montserrat', 'Poppins', sans-serif; font-weight: 800; font-size: 19.44px; letter-spacing: -0.5px;">Navi
+                            by AI</span>
                     </div>
                 </div>
             </button>
@@ -3348,6 +3369,26 @@
                     </div>
                     <div class="input-row"
                         style="display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%;">
+
+                        <!-- [신규] 직접 회차 검색 UI -->
+                        <div
+                            style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 5px; width: 100%;">
+                            <input type="number" id="directMinRound" min="1" max="1214" value="1"
+                                style="flex: 1; padding: 6px; border-radius: 8px; border: 1px solid #ccc; text-align: center; font-size: 14px; font-weight: bold; color: #333;"
+                                placeholder="시작">
+                            <span style="font-weight: bold; color: #333;">~</span>
+                            <input type="number" id="directMaxRound" min="1" max="1214" value="1214"
+                                style="flex: 1; padding: 6px; border-radius: 8px; border: 1px solid #ccc; text-align: center; font-size: 14px; font-weight: bold; color: #333;"
+                                placeholder="종료">
+                            <button id="directRoundSearchBtn" onclick="applyDirectRound()"
+                                style="width: 32px; height: 32px; border-radius: 50%; background-color: #1976d2; color: white; border: none; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                <svg fill="currentColor" width="16" height="16" viewBox="0 0 24 24">
+                                    <path
+                                        d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                                </svg>
+                            </button>
+                        </div>
+
                         <div class="multi-range-container">
                             <div class="slider-track"></div>
                             <div class="slider-fill" id="sliderFill"></div>
@@ -3434,16 +3475,25 @@
                     style="width: 100%; max-width: 400px; height: 72px; margin: 0 auto; padding: 0 20px; background: rgba(106, 13, 173, 0.40); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: none; border-radius: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;"
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(106,13,173,0.4)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.1)';">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 13px; transform: translateY(-12px);">
-                        <div style="width: 34.56px; height: 34.56px; border-radius: 6.5px; background: #000; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; box-shadow: inset 0 0 8.6px rgba(0,0,0,0.8), 0 2.2px 4.3px rgba(0,0,0,0.4);">
-                            <span style="color: #FFD700; font-family: 'Arial Black', 'Impact', sans-serif; font-size: 29.16px; font-weight: 900; background: linear-gradient(180deg, #FFF179 0%, #D4AF37 50%, #996A00 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-right: 1px;">K</span>
-                            <svg width="4.455" height="7.722" viewBox="0 0 10 16" style="position: absolute; left: 15.3px; top: 13.7px;">
-                                <path d="M5,0 C2.2,0 0,2.2 0,5 C0,6.9 1.1,8.5 2.6,9.3 L1.5,15.5 A0.5,0.5 0 0,0 2,16 L8,16 A0.5,0.5 0 0,0 8.5,15.5 L7.4,9.3 C8.9,8.5 10,6.9 10,5 C10,2.2 7.8,0 5,0 Z" fill="#000"/>
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; gap: 13px; transform: translateY(-12px);">
+                        <div
+                            style="width: 34.56px; height: 34.56px; border-radius: 6.5px; background: #000; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; box-shadow: inset 0 0 8.6px rgba(0,0,0,0.8), 0 2.2px 4.3px rgba(0,0,0,0.4);">
+                            <span
+                                style="color: #FFD700; font-family: 'Arial Black', 'Impact', sans-serif; font-size: 29.16px; font-weight: 900; background: linear-gradient(180deg, #FFF179 0%, #D4AF37 50%, #996A00 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-right: 1px;">K</span>
+                            <svg width="4.455" height="7.722" viewBox="0 0 10 16"
+                                style="position: absolute; left: 15.3px; top: 13.7px;">
+                                <path
+                                    d="M5,0 C2.2,0 0,2.2 0,5 C0,6.9 1.1,8.5 2.6,9.3 L1.5,15.5 A0.5,0.5 0 0,0 2,16 L8,16 A0.5,0.5 0 0,0 8.5,15.5 L7.4,9.3 C8.9,8.5 10,6.9 10,5 C10,2.2 7.8,0 5,0 Z"
+                                    fill="#000" />
                             </svg>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 6.5px; text-shadow: 0 2.2px 4.3px rgba(0,0,0,0.4), 0 0 8.6px rgba(255,255,255,0.2);">
-                            <span style="color: white; font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 19.44px; letter-spacing: -0.5px;">로또</span>
-                            <span style="color: white; font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 19.44px; letter-spacing: -0.5px;">검색</span>
+                        <div
+                            style="display: flex; align-items: center; gap: 6.5px; text-shadow: 0 2.2px 4.3px rgba(0,0,0,0.4), 0 0 8.6px rgba(255,255,255,0.2);">
+                            <span
+                                style="color: white; font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 19.44px; letter-spacing: -0.5px;">로또</span>
+                            <span
+                                style="color: white; font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 19.44px; letter-spacing: -0.5px;">검색</span>
                         </div>
                     </div>
                 </button>
@@ -4300,11 +4350,32 @@
                     // [V1.5.5 Fix]: Start with ONLY the latest round selected
                     minSlider.value = trueLatestRound;
 
+                    const dMinElem = document.getElementById('directMinRound');
+                    const dMaxElem = document.getElementById('directMaxRound');
+                    if (dMinElem && dMaxElem) {
+                        dMinElem.max = trueLatestRound;
+                        dMaxElem.max = trueLatestRound;
+                        dMinElem.value = trueLatestRound;
+                        dMaxElem.value = trueLatestRound;
+                    }
+
                     const rangeLabel = document.getElementById('maxRoundLabel');
                     if (rangeLabel) {
                         rangeLabel.innerText = trueLatestRound;
                     }
                     updateRecentRounds(trueLatestRound);
+                }
+
+                // Update the direct input fields when enter key is pressed
+                const dMinInput = document.getElementById('directMinRound');
+                const dMaxInput = document.getElementById('directMaxRound');
+                if (dMinInput && dMaxInput) {
+                    dMinInput.addEventListener('keypress', function (e) {
+                        if (e.key === 'Enter') applyDirectRound();
+                    });
+                    dMaxInput.addEventListener('keypress', function (e) {
+                        if (e.key === 'Enter') applyDirectRound();
+                    });
                 }
 
                 // --- Add Real-time Event Listeners ---
@@ -4383,6 +4454,39 @@
                 }
             };
 
+            function applyDirectRound() {
+                const dMinElem = document.getElementById('directMinRound');
+                const dMaxElem = document.getElementById('directMaxRound');
+                const minSlider = document.getElementById('minRound');
+                const maxSlider = document.getElementById('maxRound');
+
+                if (!dMinElem || !dMaxElem || !minSlider || !maxSlider) return;
+
+                let minVal = parseInt(dMinElem.value);
+                let maxVal = parseInt(dMaxElem.value);
+
+                if (isNaN(minVal) || minVal < 1) minVal = 1;
+                if (isNaN(maxVal) || maxVal < 1) maxVal = 1;
+
+                const absMax = parseInt(maxSlider.max) || 1214;
+                if (minVal > absMax) minVal = absMax;
+                if (maxVal > absMax) maxVal = absMax;
+
+                if (minVal > maxVal) {
+                    const temp = minVal;
+                    minVal = maxVal;
+                    maxVal = temp;
+                }
+
+                dMinElem.value = minVal;
+                dMaxElem.value = maxVal;
+                minSlider.value = minVal;
+                maxSlider.value = maxVal;
+
+                updateDualSliderUI();
+                applyFilters();
+            }
+
             function updateDualSliderUI() {
                 const minSlider = document.getElementById('minRound');
                 const maxSlider = document.getElementById('maxRound');
@@ -4407,6 +4511,12 @@
 
                 // Update text display
                 display.innerText = `Selected: ${minVal} ~ ${maxVal}`;
+
+                // Update direct input fields
+                const dMin = document.getElementById('directMinRound');
+                const dMax = document.getElementById('directMaxRound');
+                if (dMin && document.activeElement !== dMin) dMin.value = minVal;
+                if (dMax && document.activeElement !== dMax) dMax.value = maxVal;
 
                 // Update track gradient fill
                 const minRange = minSlider.max - minSlider.min;
