@@ -37,6 +37,25 @@ INTERNET_LOTTERY_LNG = 126.97923
 # ===================================================================
 # 1. 네이버 검색 기반 당첨번호 추출
 # ===================================================================
+def _extract_bonus_from_text(text, nums):
+    """전체 텍스트에서 보너스 번호를 추출하는 헬퍼 함수"""
+    bonus_patterns = [
+        # '보너스 번호는 '41'' 형태 (가장 정확, 최우선)
+        r"보너스\s*번호는\s*['‘’\"“”](\d{1,2})['‘’\"“”]",
+        # 보너스 번호 : 41 (단어 경계 + '등' 제외)
+        r'보너스\s*번호\s*[:：]?\s*(?<!\d)(\d{1,2})(?!\d|등)',
+        # 보너스 41 (단어 경계 + '등' 제외, 최대 15자 이내)
+        r'보너스\D{0,15}?(?<!\d)(\d{1,2})(?!\d|등)',
+    ]
+
+    for bp in bonus_patterns:
+        bm = re.search(bp, text)
+        if bm:
+            bonus = int(bm.group(1))
+            if 1 <= bonus <= 45 and bonus not in nums:
+                return bonus
+    return None
+
 def fetch_winning_numbers_naver(draw_no):
     query = f"로또 {draw_no}회 당첨번호"
     url = f"https://search.naver.com/search.naver?query={requests.utils.quote(query)}"
@@ -48,13 +67,14 @@ def fetch_winning_numbers_naver(draw_no):
         for m in re.finditer(pattern, text):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
-                search_region = text[max(0, m.start()-100) : m.end()+200]
-                bonus_pattern = r'보너스\D{0,30}?(?<!\d)(\d{1,2})(?!\d)'
-                bm = re.search(bonus_pattern, search_region)
-                if bm:
-                    bonus = int(bm.group(1))
-                    if 1 <= bonus <= 45 and bonus not in nums:
-                        nums.append(bonus)
+                # 1차: 매치 주변 500자 영역에서 보너스 번호 검색
+                search_region = text[max(0, m.start()-200) : m.end()+500]
+                bonus = _extract_bonus_from_text(search_region, nums)
+                # 2차: 전체 텍스트에서 보너스 번호 검색
+                if bonus is None:
+                    bonus = _extract_bonus_from_text(text, nums)
+                if bonus is not None:
+                    nums.append(bonus)
                 print(f"[Naver] 당첨번호 추출 성공: {nums}")
                 return nums
     except Exception as e:
@@ -74,13 +94,12 @@ def fetch_winning_numbers_google(draw_no):
         for m in re.finditer(pattern, text):
             nums = [int(m.group(i)) for i in range(1, 7)]
             if all(1 <= n <= 45 for n in nums) and len(set(nums)) == 6:
-                search_region = text[max(0, m.start()-100) : m.end()+200]
-                bonus_pattern = r'보너스\D{0,30}?(?<!\d)(\d{1,2})(?!\d)'
-                bm = re.search(bonus_pattern, search_region)
-                if bm:
-                    bonus = int(bm.group(1))
-                    if 1 <= bonus <= 45 and bonus not in nums:
-                        nums.append(bonus)
+                search_region = text[max(0, m.start()-200) : m.end()+500]
+                bonus = _extract_bonus_from_text(search_region, nums)
+                if bonus is None:
+                    bonus = _extract_bonus_from_text(text, nums)
+                if bonus is not None:
+                    nums.append(bonus)
                 print(f"[Google] 당첨번호 추출 성공: {nums}")
                 return nums
     except Exception as e:
@@ -164,7 +183,7 @@ def fetch_stores_naver_news(draw_no):
                 
             text = content.get_text(separator="\n")
             # regex to find store name and address hint within parentheticals
-            matches = list(re.finditer(r'(?:▲|△|■|[\d]+\.)\s*([가-힣\w\d&/\s()]+)\(([^)]+)\)', text))
+            matches = list(re.finditer(r'(?:▲|△|■|[\d]+\.)\s*([가-힣\w\d&/\s()+\-.,]+)\(([^)]+)\)', text))
                 
             for i, m in enumerate(matches):
                 p1 = m.group(1).strip()
@@ -191,8 +210,20 @@ def fetch_stores_naver_news(draw_no):
                     elif "2명" in next_text or "2게임" in next_text or "2건" in next_text:
                         multiplier = 2
 
-                method = "수동" if "수동" in text[max(0, m.start()-50):search_end] else "자동"
-                if "반자동" in text[max(0, m.start()-50):search_end]: method = "반자동"
+                # 섹션 기반 구매방식 감지: "수동 선택" 블록에 있으면 수동
+                pre_text = text[max(0, m.start()-300):m.start()]
+                # 마지막 '선택' 키워드 기반으로 수동/자동 판별
+                last_auto = pre_text.rfind('자동 선택')
+                last_manual = pre_text.rfind('수동 선택')
+                if last_manual > last_auto:
+                    method = "수동"
+                elif last_auto > last_manual:
+                    method = "자동"
+                else:
+                    # fallback: 주변 텍스트에서 수동/자동 키워드 검색
+                    local_text = text[max(0, m.start()-80):search_end]
+                    method = "수동" if "수동" in local_text else "자동"
+                if "반자동" in text[max(0, m.start()-80):search_end]: method = "반자동"
                     
                 key = (name, addr)
                 if key not in stores_map:
@@ -295,11 +326,14 @@ def save_to_supabase(target_round, winning_nums, records):
         return True
 
     # ── 1. lotto_rounds 업로드 ─────────────────────────────────────────────
-    if winning_nums and len(winning_nums) >= 7:
+    if winning_nums and len(winning_nums) >= 6:
+        bonus = winning_nums[6] if len(winning_nums) >= 7 else 0
+        if bonus == 0:
+            print(f"[Supabase] ⚠️  보너스 번호 미확인 → 0으로 임시 저장 (추후 업데이트 필요)")
         round_data = {
             "round": target_round, "num1": winning_nums[0], "num2": winning_nums[1],
             "num3": winning_nums[2], "num4": winning_nums[3], "num5": winning_nums[4],
-            "num6": winning_nums[5], "bonus": winning_nums[6]
+            "num6": winning_nums[5], "bonus": bonus
         }
         url = f"{SUPABASE_URL}/rest/v1/lotto_rounds?on_conflict=round"
         try:
@@ -399,7 +433,36 @@ def run_update(target_round):
     if not records:
         print(f"[Update] ❌ {target_round}회 판매점 정보 생략/조회 불가")
         return False
-        
+    
+    # 보너스 번호 미확인 시 뉴스 기사에서 보너스 번호 추출 시도
+    if winning_nums and len(winning_nums) == 6:
+        print(f"[Update] ⚠️  보너스 번호 미확인 → 뉴스 기사에서 추출 시도")
+        news_queries = [f"로또 {target_round}회 당첨번호 보너스"]
+        for nq in news_queries:
+            nurl = f"https://search.naver.com/search.naver?where=news&query={requests.utils.quote(nq)}&sort=1"
+            try:
+                nr = requests.get(nurl, headers=NAVER_HEADERS, timeout=10)
+                nsoup = BeautifulSoup(nr.text, "html.parser")
+                for a in nsoup.find_all('a', href=True):
+                    href = a['href']
+                    if 'news.naver.com' in href and 'article' in href:
+                        try:
+                            ar = requests.get(href, headers=NAVER_HEADERS, timeout=10)
+                            ar.encoding = 'utf-8'
+                            asoup = BeautifulSoup(ar.text, "html.parser")
+                            content = asoup.find('article', id='dic_area') or asoup.find('div', id='dic_area')
+                            if content:
+                                atext = content.get_text(separator=" ")
+                                bonus = _extract_bonus_from_text(atext, winning_nums)
+                                if bonus is not None:
+                                    winning_nums.append(bonus)
+                                    print(f"[Update] ✅ 뉴스에서 보너스 번호 추출 성공: {bonus}")
+                                    break
+                        except: pass
+                if len(winning_nums) >= 7:
+                    break
+            except: pass
+
     try:
         import pandas as pd
         cache = {}
