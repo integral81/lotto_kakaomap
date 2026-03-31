@@ -30,7 +30,7 @@
     </script>
 
     <meta charset="utf-8">
-    <title>KINOV 로또 명당지도 v1.2</title>
+    <title>KINOV 로또 명당지도 v1.3</title>
     <!--
       =============================================================
       [ KINOV 로또 명당지도 VERSION HISTORY ]
@@ -197,61 +197,117 @@
             margin: 0 auto 15px auto;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            display: block;
-            object-fit: contain;
-            background: #000;
+
+        /* --- [v1.3] Live Ticker Bar & Ball View Styles --- */
+        .lotto-ticker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 45px;
+            background: linear-gradient(180deg, #1a237e 0%, #0d47a1 100%);
+            color: white;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
         }
 
-        .kinov-alert-title {
-            font-size: 16px;
+        .ticker-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ticker-draw {
             font-weight: 800;
-            margin-bottom: 8px;
-            color: #fff;
-            letter-spacing: -0.5px;
-        }
-
-        .kinov-alert-message {
+            color: #ffeb3b;
             font-size: 14px;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 20px;
-            word-break: keep-all;
         }
 
-        .kinov-alert-btn {
+        .ticker-timer {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ff9800;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        .ticker-prize { font-size: 13px; }
+        .ticker-prize strong { color: #fff; font-weight: 800; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+
+        .lotto-ball {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 14px;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3), 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+            margin: 0 2px;
+        }
+
+        .ball-yellow { background: linear-gradient(135deg, #fbc02d, #f9a825); color: #000; text-shadow: none; }
+        .ball-blue { background: linear-gradient(135deg, #1976d2, #1565c0); }
+        .ball-red { background: linear-gradient(135deg, #e53935, #c62828); }
+        .ball-gray { background: linear-gradient(135deg, #757575, #616161); }
+        .ball-green { background: linear-gradient(135deg, #43a047, #2e7d32); }
+
+        .ball-row-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
             background: #fff;
-            color: #673ab7;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            transition: background 0.2s, transform 0.1s;
         }
 
-        .kinov-alert-btn:hover {
-            background: #f1f1f1;
-        }
+        .ball-slot-label { font-weight: bold; font-size: 14px; min-width: 45px; color: #d32f2f; }
+        .ball-container-small { display: flex; gap: 4px; }
 
-        .kinov-alert-btn:active {
-            transform: scale(0.95);
-        }
+        body { padding-top: 45px !important; }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        @media (max-width: 768px) {
+            .ticker-prize { display: none; }
+            .ticker-section { gap: 6px; }
+            .lotto-ticker { padding: 0 10px; }
         }
+    </style>
+</head>
 
-        :root {
-            --primary: #d32f2f;
-            --secondary: #1976d2;
-            --bg: #f5f5f5;
-            --card: #ffffff;
-            --text: #333333;
-        }
-
+<body>
+    <!-- [v1.3] Live Ticker Bar -->
+    <div class="lotto-ticker">
+        <div class="ticker-section">
+            <span class="ticker-draw">제 1218 회</span>
+            <span class="ticker-timer" id="tickerCountdown">4일 05:14:00 남음</span>
+        </div>
+        <div class="ticker-section ticker-prize">
+            <span>1등 예상 총 당첨금: <strong>44억 9,220만</strong></span>
+        </div>
+        <div class="ticker-section" style="font-size: 11px; opacity: 0.8;">
+            <span>1217회: </span>
+            <div id="tickerLastResult" style="display: inline-flex; scale: 0.7; margin-left: -10px;">
+                <span class="lotto-ball ball-yellow">8</span>
+                <span class="lotto-ball ball-yellow">10</span>
+                <span class="lotto-ball ball-blue">15</span>
+                <span class="lotto-ball ball-blue">20</span>
+                <span class="lotto-ball ball-red">29</span>
+                <span class="lotto-ball ball-gray">31</span>
+                <span class="lotto-ball ball-green" style="margin-left:5px;">41</span>
+            </div>
+        </div>
+    </div>
         body,
         html {
             margin: 0;
@@ -1007,7 +1063,7 @@
 
         /* Action Button Positions & Standard Branding */
         .gps-button {
-            top: 140px;
+            top: 185px; /* 140 + 45 */
             right: 20px;
             background: #fff;
             border: 2px solid #48bb78;
@@ -1027,14 +1083,14 @@
 
         /* Menu Button Style */
         .menu-btn {
-            top: 20px;
+            top: 65px; /* 20 + 45 */
             right: 20px;
             border: 2px solid var(--secondary);
         }
 
         /* QR Quick Button Style */
         .qr-quick-btn {
-            top: 80px;
+            top: 125px; /* 80 + 45 */
             right: 20px;
             border: 2px solid var(--primary);
         }
@@ -6823,6 +6879,15 @@
                 }
             }
 
+            // [v1.3] Helper to get ball class based on number
+            function getBallClass(n) {
+                if (n <= 10) return 'ball-yellow';
+                if (n <= 20) return 'ball-blue';
+                if (n <= 30) return 'ball-red';
+                if (n <= 40) return 'ball-gray';
+                return 'ball-green';
+            }
+
             function addToBasket(numbers) {
                 if (lottoBasket.length >= 5) {
                     showToast('⚠️ 장바구니가 가득 찼습니다! (최대 5개)');
@@ -6946,8 +7011,57 @@
 
                 container.innerHTML = '';
                 const labels = ['A', 'B', 'C', 'D', 'E'];
+
+                // [v1.3] Ball View Summary Area
+                const summaryWrapper = document.createElement('div');
+                summaryWrapper.style.cssText = "background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; border: 1px dashed #ccc; width: 100%; overflow: hidden;";
                 
-                // Logic to render 5 columns but only filled ones have marks
+                for (let i = 0; i < 5; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'ball-row-summary';
+                    if (i === selectedManualIndex) {
+                        row.style.background = isManualMode ? '#fff5f5' : '#e3f2fd';
+                    }
+                    row.onclick = () => selectSlot(i);
+                    row.style.cursor = 'pointer';
+
+                    const label = document.createElement('div');
+                    label.className = 'ball-slot-label';
+                    label.innerText = labels[i];
+                    row.appendChild(label);
+
+                    const ballContainer = document.createElement('div');
+                    ballContainer.className = 'ball-container-small';
+                    
+                    const nums = lottoBasket[i] || [];
+                    if (nums.length === 0) {
+                        ballContainer.innerHTML = '<span style="color:#bbb; font-size:12px;">번호를 추가해 주세요</span>';
+                    } else {
+                        nums.forEach(n => {
+                            const ball = document.createElement('span');
+                            ball.className = `lotto-ball ${getBallClass(n)}`;
+                            ball.innerText = n;
+                            ballContainer.appendChild(ball);
+                        });
+                        // Fill empty circles if less than 6
+                        for (let k = nums.length; k < 6; k++) {
+                            const empty = document.createElement('span');
+                            empty.className = 'lotto-ball';
+                            empty.style.background = '#eee';
+                            empty.style.color = '#ccc';
+                            empty.innerText = '?';
+                            ballContainer.appendChild(empty);
+                        }
+                    }
+                    row.appendChild(ballContainer);
+                    summaryWrapper.appendChild(row);
+                }
+                container.appendChild(summaryWrapper);
+
+                // Detailed OMR Columns Area
+                const omrGridWrapper = document.createElement('div');
+                omrGridWrapper.style.cssText = "display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; width: 100%; scroll-behavior: smooth;";
+                
                 for (let i = 0; i < 5; i++) {
                     const isSelected = (i === selectedManualIndex);
                     const col = document.createElement('div');
@@ -6995,8 +7109,9 @@
                         grid.appendChild(mark);
                     }
                     col.appendChild(grid);
-                    container.appendChild(col);
+                    omrGridWrapper.appendChild(col);
                 }
+                container.appendChild(omrGridWrapper);
 
                 if (lottoBasket.length === 5) {
                     btnMarking.style.display = 'inline-block';
@@ -7006,6 +7121,30 @@
                     msg.style.display = 'block';
                 }
             }
+
+            // [v1.3] Real-time Ticker Countdown Logic
+            function updateTicker() {
+                const now = new Date();
+                // Target: Saturday 20:00 (Next draw hypothetical)
+                // For demo, we just show the static countdown or decrement it
+                const timerEl = document.getElementById('tickerCountdown');
+                if (timerEl) {
+                    let text = timerEl.innerText;
+                    // Simple decrement logic for HH:MM:SS
+                    if (text.includes(':')) {
+                        let parts = text.split(' ');
+                        let timePart = parts[parts.length - 2];
+                        let [h, m, s] = timePart.split(':').map(Number);
+                        s--;
+                        if (s < 0) { s = 59; m--; }
+                        if (m < 0) { m = 59; h--; }
+                        const newTime = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                        parts[parts.length - 2] = newTime;
+                        timerEl.innerText = parts.join(' ');
+                    }
+                }
+            }
+            setInterval(updateTicker, 1000);
 
             // Initialize on Load
             updateBasketBadge();
