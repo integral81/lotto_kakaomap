@@ -877,6 +877,95 @@
             font-weight: 900;
         }
 
+        /* --- [NEW] OMR Basket Badge & Button Styles --- */
+        .basket-badge {
+            background: #ff3d00;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+            display: inline-block;
+            vertical-align: middle;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .btn-to-basket {
+            background: linear-gradient(135deg, #FF8C00, #FF4500) !important;
+            color: white !important;
+            border: none !important;
+            padding: 10px 20px !important;
+            border-radius: 25px !important;
+            font-weight: bold !important;
+            font-size: 13px !important;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 69, 0, 0.3);
+            transition: transform 0.2s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-to-basket:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(255, 69, 0, 0.4);
+        }
+
+        .omr-basket-container {
+            display: flex;
+            flex-direction: row;
+            gap: 15px; /* 10 * 1.5 */
+            background: #fff;
+            padding: 22.5px; /* 15 * 1.5 */
+            border-radius: 12px;
+            overflow-x: auto;
+            justify-content: center;
+            border: 2px solid #ddd;
+        }
+
+        .omr-column {
+            width: 210px; /* 140 * 1.5 */
+            flex-shrink: 0;
+            border: 1px solid #ccc;
+            padding: 7.5px; /* 5 * 1.5 */
+            background: #fafafa;
+        }
+
+        .omr-header {
+            background: #d32f2f;
+            color: white;
+            font-size: 16.5px; /* 11 * 1.5 */
+            font-weight: bold;
+            text-align: center;
+            padding: 4.5px 0; /* 3 * 1.5 */
+            margin-bottom: 7.5px; /* 5 * 1.5 */
+        }
+
+        .omr-number-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .omr-mark {
+            aspect-ratio: 1;
+            font-size: 13.5px; /* 9 * 1.5 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #eee;
+            background: white;
+            color: #ccc;
+            cursor: default;
+        }
+
+        .omr-mark.marked {
+            background: #000;
+            color: #000; /* Just a black block */
+        }
+
         .omr-action-btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -3553,6 +3642,11 @@
 
             <div class="side-nav-body">
                 <div class="menu-category">당첨 정보</div>
+                <div class="menu-item" onclick="openLottoBasket()">
+                    <span class="m-icon">🛒</span>
+                    <span class="m-text">나의 로또 OMR장바구니</span>
+                    <span id="basketBadge" class="basket-badge">0/5</span>
+                </div>
                 <div class="menu-item" onclick="showStats()">
                     <span class="m-icon">📊</span>
                     <span class="m-text">번호별 출현횟수</span>
@@ -3572,26 +3666,8 @@
                     <span class="m-icon">📍</span>
                     <span class="m-text">내 주변 명당 찾기</span>
                 </div>
-                <div class="menu-item" onclick="openLastOMR();">
-                    <span class="m-icon">📝</span>
-                    <span class="m-text">이번 주 1등 예상번호<br>OMR로 보기</span>
-                </div>
 
                 <!-- Alert Box for OMR (Hidden by default) -->
-                <div id="omrAlertBox"
-                    style="display:none; margin: 15px 15px 20px 15px; padding: 20px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); border-radius: 12px; border: 3px solid #ff6b6b; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); animation: pulse-alert 1.5s infinite;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 24px;">⚠️</span>
-                        <div style="flex: 1;">
-                            <div
-                                style="font-size: 21px; font-weight: bold; color: #d32f2f; margin-bottom: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">
-                                알림</div>
-                            <div style="font-size: 16px; color: #333; font-weight: 600; line-height: 1.4;">지도에서
-                                추천번호를<br>먼저
-                                받고 오세요~!!</div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="menu-category">기타</div>
                 <div class="menu-item" onclick="shareToKakao()">
@@ -3847,7 +3923,31 @@
             </div>
         </div>
 
-        <!-- QR Code Scanner Modal -->
+        <!-- OMR Basket Modal -->
+        <div id="basketModal" class="modal">
+            <div class="omr-modal-content" style="max-width: 1200px; width: 95%; background: #fdfdfd;">
+                <span class="modal-close" style="color:#333; z-index:100; font-size: 30px;" onclick="closeBasketModal()">&times;</span>
+                
+                <h2 style="margin: 30px 0 10px 0; font-family: 'Black Han Sans', sans-serif; color: #d32f2f; font-size: 36px;">🛒 나의 로또 OMR장바구니</h2>
+                <p style="font-size: 21px; color: #666; margin-bottom: 30px;">로또맵에서 모은 행운의 번호 조합입니다. (최대 5개)</p>
+                
+                <div id="basketOMRContainer" class="omr-basket-container">
+                    <!-- OMR Columns will be injected here -->
+                    <div style="padding: 40px; color: #999;">번호를 수집해 보세요! (0/5)</div>
+                </div>
+                
+                <div style="margin-top: 35px; text-align: center;">
+                    <button id="btnFinalMarking" class="btn-apply" style="max-width: 450px; background: #d32f2f; display: none; font-size: 21px; padding: 15px 30px;" 
+                        onclick="closeBasketModal(); showToast('🎉 준비 완료! 실제 OMR에 마킹하러 가보세요!');">
+                        📅 이번주 번호 마킹하기
+                    </button>
+                    <button class="btn-sm" style="background: #666; margin-top: 15px; font-size: 18px; padding: 8px 16px;" onclick="clearBasket()">🗑️ 장바구니 비우기</button>
+                    <p id="basketNotice" style="font-size: 18px; color: #d32f2f; margin-top: 15px; font-weight: bold;">
+                        * 5개의 조합이 다 모여야 마킹하기 버튼이 활성화됩니다.
+                    </p>
+                </div>
+            </div>
+        </div>
         <div id="qrModal" class="modal">
             <div class="qr-modal-content">
                 <span class="modal-close" style="color:#333; z-index:100; padding:10px; right:10px; top:5px;"
@@ -6708,6 +6808,143 @@
                 document.getElementById('adModal').style.display = 'none';
             }
 
+            // --- [NEW] OMR Basket Logic ---
+            let lottoBasket = JSON.parse(localStorage.getItem('lottoBasket') || '[]');
+
+            function updateBasketBadge() {
+                const badge = document.getElementById('basketBadge');
+                if (badge) {
+                    badge.innerText = `${lottoBasket.length}/5`;
+                }
+            }
+
+            function addToBasket(numbers) {
+                if (lottoBasket.length >= 5) {
+                    showToast('⚠️ 장바구니가 가득 찼습니다! (최대 5개)');
+                    return;
+                }
+                
+                // Sort for consistency
+                const sortedNums = [...numbers].sort((a,b) => a - b);
+                
+                // Check for duplicates
+                const isDup = lottoBasket.some(b => JSON.stringify(b) === JSON.stringify(sortedNums));
+                if (isDup) {
+                    showToast('💡 이미 장바구니에 있는 번호입니다.');
+                    return;
+                }
+
+                lottoBasket.push(sortedNums);
+                localStorage.setItem('lottoBasket', JSON.stringify(lottoBasket));
+                updateBasketBadge();
+
+                // [개선] 토스트 내부에 '장바구니 바로가기' 버튼 추가
+                showToast(`🛒 OMR 장바구니에 추가되었습니다! (${lottoBasket.length}/5)<br><a href="javascript:void(0)" onclick="openLottoBasket()" style="color:#fae100; font-weight:bold; text-decoration:underline; font-size:12px; margin-top:5px; display:inline-block;">장바구니 바로가기 &gt;</a>`);
+                
+                // If 5th added, suggest looking at OMR
+                if (lottoBasket.length === 5) {
+                    setTimeout(() => {
+                        if (confirm('🎉 5개의 조합이 완성되었습니다!\n지금 바로 OMR 마킹을 확인하시겠습니까?')) {
+                            openLottoBasket();
+                        }
+                    }, 500);
+                }
+            }
+
+            function clearBasket() {
+                if (confirm('장바구니를 비우시겠습니까?')) {
+                    lottoBasket = [];
+                    localStorage.setItem('lottoBasket', '[]');
+                    updateBasketBadge();
+                    renderBasketOMR();
+                    showToast('🗑️ 장바구니가 비워졌습니다.');
+                }
+            }
+
+            function openLottoBasket() {
+                closeNav();
+                renderBasketOMR();
+                document.getElementById('basketModal').style.display = 'flex';
+                history.pushState({ basketOpen: true }, null, "");
+            }
+
+            function closeBasketModal() {
+                if (document.getElementById('basketModal').style.display === 'flex') {
+                    history.back();
+                }
+            }
+
+            function _internalCloseBasketModal() {
+                document.getElementById('basketModal').style.display = 'none';
+            }
+
+            function renderBasketOMR() {
+                const container = document.getElementById('basketOMRContainer');
+                const btnMarking = document.getElementById('btnFinalMarking');
+                const msg = document.getElementById('basketNotice');
+                
+                if (lottoBasket.length === 0) {
+                    container.innerHTML = '<div style="padding: 40px; color: #999;">번호를 수집해 보세요! (0/5)</div>';
+                    btnMarking.style.display = 'none';
+                    msg.style.display = 'block';
+                    return;
+                }
+
+                container.innerHTML = '';
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                
+                // Logic to render 5 columns but only filled ones have marks
+                for (let i = 0; i < 5; i++) {
+                    const col = document.createElement('div');
+                    col.className = 'omr-column';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'omr-header';
+                    header.innerText = `${labels[i]} 1,000원`;
+                    col.appendChild(header);
+
+                    const grid = document.createElement('div');
+                    grid.className = 'omr-number-grid';
+                    
+                    const currentNums = lottoBasket[i] || [];
+                    
+                    for (let n = 1; n <= 45; n++) {
+                        const mark = document.createElement('div');
+                        mark.className = 'omr-mark' + (currentNums.includes(n) ? ' marked' : '');
+                        mark.innerText = n;
+                        grid.appendChild(mark);
+                    }
+                    col.appendChild(grid);
+                    container.appendChild(col);
+                }
+
+                if (lottoBasket.length === 5) {
+                    btnMarking.style.display = 'inline-block';
+                    msg.style.display = 'none';
+                } else {
+                    btnMarking.style.display = 'none';
+                    msg.style.display = 'block';
+                }
+            }
+
+            // Initialize on Load
+            updateBasketBadge();
+
+            // Handle Back Button for Basket
+            window.addEventListener('popstate', function(event) {
+                if (event.state && event.state.basketOpen) {
+                    // Do nothing, let it be open
+                } else {
+                    _internalCloseBasketModal();
+                }
+                
+                if (event.state && event.state.modalOpen) {
+                 //   
+                } else {
+                    _internalCloseModal();
+                }
+            });
+
             function showResult(customResult = null) {
                 document.getElementById('adContent').style.display = 'none';
                 document.getElementById('resultContent').style.display = 'block';
@@ -6817,11 +7054,12 @@
                         omrBtn.style.gap = '4.8px';
                         omrBtn.onclick = (e) => {
                             e.stopPropagation();
-                            openOMR(numbers);
+                            addToBasket(numbers);
                         };
                         buttonsRow.appendChild(omrBtn);
 
                         groupWrapper.appendChild(buttonsRow);
+
                         mainContainer.appendChild(groupWrapper);
                         return mainContainer;
                     };
@@ -6924,11 +7162,12 @@
                         omrBtn.innerHTML = '📝 OMR';
                         omrBtn.onclick = (e) => {
                             e.stopPropagation();
-                            openOMR(numbers);
+                            addToBasket(numbers);
                         };
                         buttonsRow.appendChild(omrBtn);
 
                         groupWrapper.appendChild(buttonsRow);
+
                         mainContainer.appendChild(groupWrapper);
 
                         // Link for Manual
@@ -7827,22 +8066,6 @@
                 setTimeout(() => modal.style.display = 'none', 300);
             }
 
-            // Quick OMR View from Hamburger Menu
-            function openLastOMR() {
-                if (lastRecommendedNumbers && lastRecommendedNumbers.length === 6) {
-                    closeNav();
-                    openOMR(lastRecommendedNumbers);
-                } else {
-                    // Show alert box in hamburger menu
-                    const alertBox = document.getElementById('omrAlertBox');
-                    alertBox.style.display = 'block';
-
-                    // Auto-hide after 4 seconds
-                    setTimeout(() => {
-                        alertBox.style.display = 'none';
-                    }, 4000);
-                }
-            }
 
             // Global reference removed to avoid duplication with the main copyToClipboard function above
 
