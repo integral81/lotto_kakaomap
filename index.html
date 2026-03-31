@@ -918,7 +918,7 @@
             flex-direction: row;
             gap: 15px; /* 10 * 1.5 */
             background: #fff;
-            padding: 22.5px; /* 15 * 1.5 */
+            padding: 10px; /* Reduced from 22.5px */
             border-radius: 12px;
             overflow-x: auto;
             justify-content: center;
@@ -3928,24 +3928,24 @@
             <div class="omr-modal-content" style="max-width: 1200px; width: 95%; background: #fdfdfd;">
                 <span class="modal-close" style="color:#333; z-index:100; font-size: 30px;" onclick="closeBasketModal()">&times;</span>
                 
-                <h2 style="margin: 30px 0 10px 0; font-family: 'Black Han Sans', sans-serif; color: #d32f2f; font-size: 36px;">🛒 나의 로또 OMR장바구니</h2>
-                <p style="font-size: 21px; color: #666; margin-bottom: 30px;">로또맵에서 모은 행운의 번호 조합입니다. (최대 5개)</p>
+                <h2 style="margin: 15px 0 5px 0; font-family: 'Black Han Sans', sans-serif; color: #d32f2f; font-size: 24px;">🛒 나의 로또 OMR장바구니</h2>
+                <p style="font-size: 15px; color: #666; margin-bottom: 15px;">로또맵에서 모은 행운의 번호 조합입니다. (최대 5개)</p>
                 
                 <div id="basketOMRContainer" class="omr-basket-container">
                     <!-- OMR Columns will be injected here -->
                     <div style="padding: 40px; color: #999;">번호를 수집해 보세요! (0/5)</div>
                 </div>
                 
-                <div style="margin-top: 35px; text-align: center;">
-                    <button id="btnFinalMarking" class="btn-apply" style="max-width: 450px; background: #d32f2f; display: none; font-size: 21px; padding: 15px 30px;" 
+                <div style="margin-top: 10px; text-align: center;">
+                    <button id="btnFinalMarking" class="btn-apply" style="max-width: 350px; background: #d32f2f; display: none; font-size: 18px; padding: 10px 20px;" 
                         onclick="closeBasketModal(); showToast('🎉 준비 완료! 실제 OMR에 마킹하러 가보세요!');">
                         📅 이번주 번호 마킹하기
                     </button>
-                    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
-                        <button id="btnToggleManual" class="btn-sm" style="background: #d32f2f; font-size: 18px; padding: 8px 16px; border: 2px solid white;" onclick="toggleManualMode()">📝 수동으로 마킹하기</button>
-                        <button class="btn-sm" style="background: #333; font-size: 18px; padding: 8px 16px;" onclick="clearBasket()">🗑️ 장바구니 비우기</button>
+                    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;">
+                        <button id="btnToggleManual" class="btn-sm" style="background: #d32f2f; font-size: 16px; padding: 6px 12px; border: 2px solid white;" onclick="toggleManualMode()">📝 수동으로 마킹하기</button>
+                        <button class="btn-sm" style="background: #333; font-size: 16px; padding: 6px 12px;" onclick="clearBasket()">🗑️ 장바구니 비우기</button>
                     </div>
-                    <p id="basketNotice" style="font-size: 18px; color: #d32f2f; margin-top: 15px; font-weight: bold;">
+                    <p id="basketNotice" style="font-size: 13px; color: #d32f2f; margin-top: 8px; font-weight: bold;">
                         * 5개의 조합이 다 모여야 마킹하기 버튼이 활성화됩니다.
                     </p>
                 </div>
