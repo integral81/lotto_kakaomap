@@ -3783,6 +3783,19 @@
         .ball-container-small { display: flex; gap: 4px; }
         body { padding-top: 45px !important; }
         @media (max-width: 768px) { .ticker-prize { display: none; } .ticker-section { gap: 6px; } .lotto-ticker { padding: 0 10px; } }
+        
+        /* OMR 4-Corner Resize Handles */
+        .omr-resize-handle {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            z-index: 9999;
+            background: transparent;
+        }
+        .omr-resize-handle.top-left { top: -10px; left: -10px; cursor: nwse-resize; }
+        .omr-resize-handle.top-right { top: -10px; right: -10px; cursor: nesw-resize; }
+        .omr-resize-handle.bottom-left { bottom: -10px; left: -10px; cursor: nesw-resize; }
+        .omr-resize-handle.bottom-right { bottom: -10px; right: -10px; cursor: nwse-resize; }
     </style>
 </head>
 
@@ -4333,7 +4346,14 @@
 
         <!-- OMR Basket Modal v2 (v1.4) -->
         <div id="basketModal" class="modal">
-            <div class="omr-modal-content" style="max-width: 1400px; width: 96%; min-width: 800px; background: #fff; border-radius: 16px; padding: 0; overflow: auto; resize: both;">
+            <div class="omr-modal-content" style="max-width: 1125px; width: 96%; background: #fff; border-radius: 16px; padding: 0; overflow: visible; position: relative;">
+                
+                <!-- 4 Resize Handles for Desktop Scaling -->
+                <div class="omr-resize-handle top-left"></div>
+                <div class="omr-resize-handle top-right"></div>
+                <div class="omr-resize-handle bottom-left"></div>
+                <div class="omr-resize-handle bottom-right"></div>
+                
                 <span class="modal-close" style="color:#6b7280; z-index:100; font-size: 28px; top: 12px; right: 16px;" onclick="closeBasketModal()">&times;</span>
                 
                 <!-- Title Bar -->
@@ -7693,6 +7713,8 @@
             }
 
             // --- Open / Close Basket ---
+            let currentOmrScale = parseFloat(localStorage.getItem('omrBasketScale')) || 1;
+
             function openLottoBasket() {
                 closeNav();
                 omrActiveSlot = lottoBasket.findIndex((s, i) => !s || s.length === 0);
@@ -7700,7 +7722,16 @@
                 omrGridSelected = [];
                 renderOmrGrid();
                 renderOmrSlots();
-                document.getElementById('basketModal').style.display = 'flex';
+                
+                // Apply saved scaling
+                const modal = document.getElementById('basketModal');
+                const content = modal.querySelector('.omr-modal-content');
+                if (content && window.innerWidth > 768) {
+                    currentOmrScale = parseFloat(localStorage.getItem('omrBasketScale')) || 1;
+                    content.style.transform = `scale(${currentOmrScale})`;
+                }
+                
+                modal.style.display = 'flex';
                 history.pushState({ basketOpen: true }, null, '');
             }
 
@@ -7713,6 +7744,57 @@
             function _internalCloseBasketModal() {
                 document.getElementById('basketModal').style.display = 'none';
             }
+
+            // --- 4-Corner JS Resizing ---
+            function initOmrResize() {
+                const modalContent = document.querySelector('#basketModal .omr-modal-content');
+                if (!modalContent) return;
+                
+                const handles = modalContent.querySelectorAll('.omr-resize-handle');
+                handles.forEach(handle => {
+                    handle.addEventListener('mousedown', function(e) {
+                        if (window.innerWidth <= 768) return; // Disable on mobile
+                        e.preventDefault();
+                        
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startScale = currentOmrScale;
+                        const rect = modalContent.getBoundingClientRect();
+                        const baseWidth = rect.width / startScale;
+                        const baseHeight = rect.height / startScale;
+
+                        const isRight = handle.classList.contains('top-right') || handle.classList.contains('bottom-right');
+                        const isBottom = handle.classList.contains('bottom-left') || handle.classList.contains('bottom-right');
+
+                        function onMouseMove(moveEvent) {
+                            const dx = moveEvent.clientX - startX;
+                            const dy = moveEvent.clientY - startY;
+
+                            const dxRatio = (isRight ? dx : -dx) / (baseWidth / 2);
+                            const dyRatio = (isBottom ? dy : -dy) / (baseHeight / 2);
+                            
+                            let newScale = startScale + (dxRatio + dyRatio) / 2;
+                            
+                            // Bounds
+                            if(newScale < 0.6) newScale = 0.6;
+                            if(newScale > 1.8) newScale = 1.8;
+
+                            currentOmrScale = newScale;
+                            modalContent.style.transform = `scale(${currentOmrScale})`;
+                        }
+
+                        function onMouseUp() {
+                            localStorage.setItem('omrBasketScale', currentOmrScale);
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+                        }
+
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+                });
+            }
+            window.addEventListener('load', initOmrResize);
 
             // Legacy compatibility
             function clearBasket() {
