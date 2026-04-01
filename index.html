@@ -30,7 +30,7 @@
     </script>
 
     <meta charset="utf-8">
-    <title>KINOV 로또 명당지도 v1.3</title>
+    <title>KINOV 로또 명당지도 v1.4</title>
     <!--
       =============================================================
       [ KINOV 로또 명당지도 VERSION HISTORY ]
@@ -983,6 +983,357 @@
 
         .omr-action-btn:hover {
             background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ============================================================ */
+        /* OMR BASKET v2 (v1.4) — 3-Panel Layout                       */
+        /* ============================================================ */
+        .omr-basket-v2 {
+            display: flex;
+            gap: 12px;
+            padding: 15px;
+            background: #f3f4f6;
+            min-height: 540px;
+            align-items: stretch;
+        }
+
+        /* --- Left Features Area --- */
+        .omr-features {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Spread 4 cards evenly */
+            width: 200px;
+            flex-shrink: 0;
+            background: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .omr-feature-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 14px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            border: 1px solid #f3f4f6;
+            height: 22%;
+        }
+
+        .omr-feature-card:hover {
+            transform: scale(1.02);
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-color: #c7d2fe;
+        }
+
+        .omr-feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            color: white;
+        }
+
+        .omr-feature-card:nth-child(1) .omr-feature-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .omr-feature-card:nth-child(2) .omr-feature-icon { background: linear-gradient(135deg, #2196F3, #1565c0); }
+        .omr-feature-card:nth-child(3) .omr-feature-icon { background: linear-gradient(135deg, #9c27b0, #6a1b9a); }
+        .omr-feature-card:nth-child(4) .omr-feature-icon { background: linear-gradient(135deg, #ff9800, #e65100); }
+
+        .omr-feature-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+
+        .omr-feature-desc {
+            font-size: 10px;
+            color: #9ca3af;
+            line-height: 1.4;
+        }
+
+        /* --- Middle Grid Area --- */
+        .omr-grid-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            min-width: 0;
+        }
+
+        .omr-price-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            padding: 6px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .omr-number-grid-v2 {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px 4px; /* row-gap 10px, column-gap 4px */
+            flex: 1;
+            align-content: center;
+        }
+
+        .omr-cell-v2 {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.1s;
+            background: white;
+            user-select: none;
+            max-width: 42px;
+            margin: 0 auto;
+        }
+
+        .omr-cell-v2:hover {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
+        .omr-cell-v2.selected {
+            background: #1f2937;
+            color: white;
+            border-color: #1f2937;
+        }
+
+        .omr-grid-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .omr-grid-btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            color: #374151;
+        }
+
+        .omr-qty-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .omr-qty-select {
+            padding: 5px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        .omr-qty-btn {
+            padding: 5px 12px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* --- Right Panel --- */
+        .omr-right-panel {
+            width: 340px;
+            flex-shrink: 0;
+            padding: 12px;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .omr-right-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .omr-right-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .omr-reset-all-btn {
+            padding: 4px 10px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .omr-reset-all-btn:hover {
+            background: #4b5563;
+        }
+
+        .omr-slot-table {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .omr-slot-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 4px;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.15s;
+            border-radius: 4px;
+        }
+
+        .omr-slot-row:hover {
+            background: #f0f4ff;
+        }
+
+        .omr-slot-row.active {
+            background: #eff6ff;
+            border: 1.5px solid #3b82f6;
+        }
+
+        .omr-slot-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+            width: 50px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .omr-slot-balls {
+            display: flex;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .omr-slot-ball {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            border: 1.5px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 600;
+            background: #f9fafb;
+            color: #d1d5db;
+        }
+
+        .omr-slot-ball.filled {
+            border-color: #1f2937;
+            color: white;
+        }
+
+        .omr-slot-ball.ball-yellow { background: #fbbf24; border-color: #f59e0b; }
+        .omr-slot-ball.ball-blue   { background: #3b82f6; border-color: #2563eb; }
+        .omr-slot-ball.ball-red    { background: #ef4444; border-color: #dc2626; }
+        .omr-slot-ball.ball-gray   { background: #6b7280; border-color: #4b5563; }
+        .omr-slot-ball.ball-green  { background: #22c55e; border-color: #16a34a; }
+
+        .omr-slot-actions {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .omr-slot-action-btn {
+            padding: 3px 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 9px;
+            cursor: pointer;
+            background: white;
+            color: #6b7280;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .omr-slot-action-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+            color: #374151;
+        }
+
+        /* --- Mobile Responsive (v1.4) --- */
+        @media (max-width: 900px) {
+            .omr-basket-v2 {
+                flex-direction: column;
+                height: auto;
+                gap: 15px;
+                padding: 10px;
+            }
+
+            .omr-features {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 8px;
+                height: auto;
+                padding: 10px;
+                scrollbar-width: none;
+            }
+            .omr-features::-webkit-scrollbar { display: none; }
+
+            .omr-feature-card {
+                min-width: 160px;
+                height: auto;
+                padding: 10px;
+                flex-shrink: 0;
+            }
+
+            .omr-grid-wrapper, .omr-right-panel {
+                width: 100%;
+                height: auto;
+            }
         }
 
         .floating-btn {
@@ -3980,31 +4331,84 @@
             </div>
         </div>
 
-        <!-- OMR Basket Modal -->
+        <!-- OMR Basket Modal v2 (v1.4) -->
         <div id="basketModal" class="modal">
-            <div class="omr-modal-content" style="max-width: 1200px; width: 95%; background: #fdfdfd;">
-                <span class="modal-close" style="color:#333; z-index:100; font-size: 30px;" onclick="closeBasketModal()">&times;</span>
+            <div class="omr-modal-content" style="max-width: 1200px; width: 96%; background: #fff; border-radius: 16px; padding: 0; overflow: visible;">
+                <span class="modal-close" style="color:#6b7280; z-index:100; font-size: 28px; top: 12px; right: 16px;" onclick="closeBasketModal()">&times;</span>
                 
-                <h2 style="margin: 30px 0 10px 0; font-family: 'Black Han Sans', sans-serif; color: #d32f2f; font-size: 36px;">🛒 나의 로또 OMR장바구니</h2>
-                <p style="font-size: 21px; color: #666; margin-bottom: 30px;">로또맵에서 모은 행운의 번호 조합입니다. (최대 5개)</p>
-                
-                <div id="basketOMRContainer" class="omr-basket-container">
-                    <!-- OMR Columns will be injected here -->
-                    <div style="padding: 40px; color: #999;">번호를 수집해 보세요! (0/5)</div>
+                <!-- Title Bar -->
+                <div style="padding: 18px 24px 8px; text-align: center; border-bottom: 1px solid #e5e7eb; background: #fff;">
+                    <h2 style="margin: 0 0 4px 0; font-family: 'Black Han Sans', sans-serif; color: #d32f2f; font-size: 24px;">🛒 나의 로또 OMR장바구니</h2>
+                    <p style="font-size: 13px; color: #9ca3af; margin: 0 0 8px 0;">번호를 선택하고 OMR 용지에 마킹하세요 (최대 5게임)</p>
                 </div>
-                
-                <div style="margin-top: 35px; text-align: center;">
-                    <button id="btnFinalMarking" class="btn-apply" style="max-width: 450px; background: #d32f2f; display: none; font-size: 21px; padding: 15px 30px;" 
-                        onclick="closeBasketModal(); showToast('🎉 준비 완료! 실제 OMR에 마킹하러 가보세요!');">
-                        📅 이번주 번호 마킹하기
-                    </button>
-                    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
-                        <button id="btnToggleManual" class="btn-sm" style="background: #d32f2f; font-size: 18px; padding: 8px 16px; border: 2px solid white;" onclick="toggleManualMode()">📝 수동으로 마킹하기</button>
-                        <button class="btn-sm" style="background: #333; font-size: 18px; padding: 8px 16px;" onclick="clearBasket()">🗑️ 장바구니 비우기</button>
+
+                <div class="omr-basket-v2">
+                    <!-- 1. Left: Feature Cards -->
+                    <div class="omr-features">
+                        <div class="omr-feature-card" onclick="omrSidebarAction('navi')">
+                            <div class="omr-feature-icon">⚡</div>
+                            <div class="omr-feature-info">
+                                <div class="omr-feature-title">KINOV AI</div>
+                                <div class="omr-feature-desc">AI 패턴분석 확률 검증</div>
+                            </div>
+                        </div>
+                        <div class="omr-feature-card" onclick="omrSidebarAction('analysis')">
+                            <div class="omr-feature-icon">📊</div>
+                            <div class="omr-feature-info">
+                                <div class="omr-feature-title">데이터 정밀분석</div>
+                                <div class="omr-feature-desc">명당의 과거 당첨 패턴을 정밀 분석</div>
+                            </div>
+                        </div>
+                        <div class="omr-feature-card" onclick="omrSidebarAction('dream')">
+                            <div class="omr-feature-icon">🌙</div>
+                            <div class="omr-feature-info">
+                                <div class="omr-feature-title">꿈 해몽 번호</div>
+                                <div class="omr-feature-desc">꿈 내용을 입력해보세요</div>
+                            </div>
+                        </div>
+                        <div class="omr-feature-card" onclick="omrSidebarAction('horoscope')">
+                            <div class="omr-feature-icon">🐅</div>
+                            <div class="omr-feature-info">
+                                <div class="omr-feature-title">오늘의 띠별 운세</div>
+                                <div class="omr-feature-desc">나의 띠에 맞는 행운의 숫자</div>
+                            </div>
+                        </div>
                     </div>
-                    <p id="basketNotice" style="font-size: 18px; color: #d32f2f; margin-top: 15px; font-weight: bold;">
-                        * 5개의 조합이 다 모여야 마킹하기 버튼이 활성화됩니다.
-                    </p>
+
+                    <!-- 2. Middle: Grid Wrapper -->
+                    <div class="omr-grid-wrapper">
+                        <div class="omr-price-badge">1,000원</div>
+                        <div id="omrNumberGrid" class="omr-number-grid-v2">
+                            <!-- 1~45 cells rendered by JS -->
+                        </div>
+                        <div class="omr-grid-actions">
+                            <button class="omr-grid-btn" onclick="omrResetGrid()">초기화</button>
+                            <button class="omr-grid-btn" onclick="omrAutoSelect()">자동선택</button>
+                            <button class="omr-grid-btn" onclick="omrRegisterToSlot()">나의번호등록</button>
+                        </div>
+                        <div class="omr-qty-row">
+                            <span>적용 수량</span>
+                            <select id="omrQtySelect" class="omr-qty-select">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                            <button class="omr-qty-btn" onclick="omrApplyQty()">확인</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Right: Slot Table -->
+                    <div class="omr-right-panel">
+                        <div class="omr-right-header">
+                            <span class="omr-right-title">선택번호 확인</span>
+                            <button class="omr-reset-all-btn" onclick="omrResetAll()">초기화</button>
+                        </div>
+                        <div id="omrSlotTable" class="omr-slot-table">
+                            <!-- A~E rows rendered by JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -6868,61 +7272,67 @@
                 document.getElementById('adModal').style.display = 'none';
             }
 
-            // --- [NEW] OMR Basket Logic ---
+            // === [v1.4] OMR Basket v2 Logic ===
             let lottoBasket = JSON.parse(localStorage.getItem('lottoBasket') || '[]');
-            let isManualMode = false; // [NEW] Track if we are in manual marking mode
-            let selectedManualIndex = 0; // [NEW] Current selected slot (0-4)
+            let omrActiveSlot = 0; // Currently active slot (0=A, 1=B, ..., 4=E)
+            let omrGridSelected = []; // Currently selected numbers on the center grid
+            let omrCurrentMethod = 'mix'; // Current method: mix, auto, prev, saved
+            let omrReturnMode = false; // Flag: AI modal should feed numbers back to OMR
+
+            // Ball color helper
+            function getBallClass(n) {
+                if (n <= 10) return 'ball-yellow';
+                if (n <= 20) return 'ball-blue';
+                if (n <= 30) return 'ball-red';
+                if (n <= 40) return 'ball-gray';
+                return 'ball-green';
+            }
 
             function updateBasketBadge() {
                 const badge = document.getElementById('basketBadge');
                 if (badge) {
-                    badge.innerText = `${lottoBasket.length}/5`;
+                    const filled = lottoBasket.filter(s => s && s.length === 6).length;
+                    badge.innerText = `${filled}/5`;
                 }
             }
 
-            // [v1.3] Helper to get ball class based on number
-            function getBallClass(n) {
-                if (n <= 10) return 'ball-yellow';
-                if (n <= 20) return 'ball-blue';
-                if (n <= 30) return 'ball-red';
-                if (n <= 40) return 'ball-gray';
-                return 'ball-green';
-            }
-
-            // [v1.3] Helper to get ball class based on number
-            function getBallClass(n) {
-                if (n <= 10) return 'ball-yellow';
-                if (n <= 20) return 'ball-blue';
-                if (n <= 30) return 'ball-red';
-                if (n <= 40) return 'ball-gray';
-                return 'ball-green';
-            }
-
+            // Legacy addToBasket (from AI results etc.)
             function addToBasket(numbers) {
+                const sortedNums = [...numbers].sort((a,b) => a - b);
+                
+                // If in OMR return mode, apply to grid and active slot
+                if (omrReturnMode) {
+                    omrGridSelected = [...sortedNums];
+                    omrReturnMode = false;
+                    // Auto-register to active slot
+                    omrRegisterToSlot();
+                    // Reopen basket if it was closed
+                    setTimeout(() => {
+                        if (document.getElementById('basketModal').style.display !== 'flex') {
+                            openLottoBasket();
+                        }
+                        renderOmrGrid();
+                        renderOmrSlots();
+                        showToast('✨ AI 추천 번호가 OMR에 반영되었습니다!');
+                    }, 300);
+                    return;
+                }
+                
+                // Normal (legacy) basket add
                 if (lottoBasket.length >= 5) {
                     showToast('⚠️ 장바구니가 가득 찼습니다! (최대 5개)');
                     return;
                 }
-                
-                // Sort for consistency
-                const sortedNums = [...numbers].sort((a,b) => a - b);
-                
-                // Check for duplicates
                 const isDup = lottoBasket.some(b => JSON.stringify(b) === JSON.stringify(sortedNums));
                 if (isDup) {
                     showToast('💡 이미 장바구니에 있는 번호입니다.');
                     return;
                 }
-
                 lottoBasket.push(sortedNums);
                 localStorage.setItem('lottoBasket', JSON.stringify(lottoBasket));
                 updateBasketBadge();
-
-                // [개선] 토스트 내부에 '장바구니 바로가기' 버튼 추가
-                showToast(`🛒 OMR 장바구니에 추가되었습니다! (${lottoBasket.length}/5)<br><a href="javascript:void(0)" onclick="openLottoBasket()" style="color:#fae100; font-weight:bold; text-decoration:underline; font-size:12px; margin-top:5px; display:inline-block;">장바구니 바로가기 &gt;</a>`);
-                
-                // If 5th added, suggest looking at OMR
-                if (lottoBasket.length === 5) {
+                showToast(`🛒 OMR 장바구니에 추가되었습니다! (${lottoBasket.filter(s=>s&&s.length===6).length}/5)<br><a href="javascript:void(0)" onclick="openLottoBasket()" style="color:#fae100; font-weight:bold; text-decoration:underline; font-size:12px; margin-top:5px; display:inline-block;">장바구니 바로가기 &gt;</a>`);
+                if (lottoBasket.filter(s=>s&&s.length===6).length === 5) {
                     setTimeout(() => {
                         if (confirm('🎉 5개의 조합이 완성되었습니다!\n지금 바로 OMR 마킹을 확인하시겠습니까?')) {
                             openLottoBasket();
@@ -6931,70 +7341,337 @@
                 }
             }
 
-            // [NEW] Toggle manual marking mode for Selected Slot
-            function toggleManualMode() {
-                isManualMode = !isManualMode;
-                const labels = ['A', 'B', 'C', 'D', 'E'];
-                if (isManualMode) {
-                    // Ensure the selected slot exists in the basket array
-                    for (let j = 0; j <= selectedManualIndex; j++) {
-                        if (!lottoBasket[j]) lottoBasket[j] = [];
+            // --- Render the center number grid (1~45) ---
+            function renderOmrGrid() {
+                const grid = document.getElementById('omrNumberGrid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                for (let n = 1; n <= 49; n++) {
+                    const cell = document.createElement('div');
+                    if (n <= 45) {
+                        cell.className = 'omr-cell-v2' + (omrGridSelected.includes(n) ? ' selected' : '');
+                        cell.innerText = n;
+                        cell.onclick = () => toggleOmrNumber(n);
+                    } else {
+                        cell.className = 'omr-cell-v2 empty';
                     }
-                    showToast(`📝 ${labels[selectedManualIndex]}열 수동 마킹 모드 시작!`);
-                } else {
-                    showToast('✅ 수동 마킹 모드 종료');
+                    grid.appendChild(cell);
                 }
-                renderBasketOMR();
-                updateBasketBadge();
             }
 
-            // [NEW] Toggle a specific number in a specific slot
-            function toggleManualMark(slotIdx, n) {
-                if (!isManualMode || slotIdx !== selectedManualIndex) return;
-                
-                let currentSet = lottoBasket[slotIdx] || [];
-                const idx = currentSet.indexOf(n);
-                
+            // --- Toggle a number in the grid ---
+            function toggleOmrNumber(n) {
+                const idx = omrGridSelected.indexOf(n);
                 if (idx > -1) {
-                    currentSet.splice(idx, 1);
+                    omrGridSelected.splice(idx, 1);
                 } else {
-                    if (currentSet.length >= 6) {
-                        showToast('⚠️ 한 슬롯에 최대 6개까지만 마킹 가능합니다.');
+                    if (omrGridSelected.length >= 6) {
+                        showToast('⚠️ 최대 6개까지만 선택 가능합니다.');
                         return;
                     }
-                    currentSet.push(n);
+                    omrGridSelected.push(n);
                 }
-                
-                currentSet.sort((a, b) => a - b);
-                lottoBasket[slotIdx] = currentSet;
+                omrGridSelected.sort((a, b) => a - b);
+                renderOmrGrid();
+            }
+
+            // --- Reset grid selection ---
+            function omrResetGrid() {
+                omrGridSelected = [];
+                renderOmrGrid();
+            }
+
+            // --- Auto-select 6 random numbers ---
+            function omrAutoSelect() {
+                omrGridSelected = [];
+                const pool = Array.from({length: 45}, (_, i) => i + 1);
+                for (let i = 0; i < 6; i++) {
+                    const ri = Math.floor(Math.random() * pool.length);
+                    omrGridSelected.push(pool.splice(ri, 1)[0]);
+                }
+                omrGridSelected.sort((a, b) => a - b);
+                renderOmrGrid();
+                showToast('🎲 자동으로 6개 번호가 선택되었습니다!');
+            }
+
+            // --- Register grid selection to active slot ---
+            function omrRegisterToSlot() {
+                if (omrGridSelected.length === 0) {
+                    showToast('⚠️ 번호를 먼저 선택해주세요.');
+                    return;
+                }
+                if (omrGridSelected.length !== 6) {
+                    showToast(`⚠️ 6개를 선택해야 합니다. (현재 ${omrGridSelected.length}개)`);
+                    return;
+                }
+                // Ensure basket array has enough slots
+                while (lottoBasket.length <= omrActiveSlot) {
+                    lottoBasket.push([]);
+                }
+                lottoBasket[omrActiveSlot] = [...omrGridSelected];
                 localStorage.setItem('lottoBasket', JSON.stringify(lottoBasket));
-                renderBasketOMR();
                 updateBasketBadge();
+                
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                showToast(`✅ ${labels[omrActiveSlot]}슬롯에 번호가 등록되었습니다!`);
+                
+                // Move to next empty slot
+                const nextEmpty = lottoBasket.findIndex((s, i) => i > omrActiveSlot && (!s || s.length === 0));
+                if (nextEmpty > -1) {
+                    omrActiveSlot = nextEmpty;
+                }
+                omrGridSelected = [];
+                renderOmrGrid();
+                renderOmrSlots();
             }
 
-            function selectSlot(idx) {
-                if (isManualMode) return; // Don't change selection while editing
-                selectedManualIndex = idx;
-                renderBasketOMR();
+            // --- Apply quantity (auto-fill N slots) ---
+            function omrApplyQty() {
+                const qty = parseInt(document.getElementById('omrQtySelect')?.value || '1');
+                let slotsApplied = 0;
+                for (let i = 0; i < 5 && slotsApplied < qty; i++) {
+                    if (!lottoBasket[i] || lottoBasket[i].length === 0) {
+                        // Generate random 6 numbers for this slot
+                        const pool = Array.from({length: 45}, (_, j) => j + 1);
+                        const nums = [];
+                        for (let k = 0; k < 6; k++) {
+                            const ri = Math.floor(Math.random() * pool.length);
+                            nums.push(pool.splice(ri, 1)[0]);
+                        }
+                        nums.sort((a, b) => a - b);
+                        while (lottoBasket.length <= i) lottoBasket.push([]);
+                        lottoBasket[i] = nums;
+                        slotsApplied++;
+                    }
+                }
+                if (slotsApplied > 0) {
+                    localStorage.setItem('lottoBasket', JSON.stringify(lottoBasket));
+                    updateBasketBadge();
+                    renderOmrSlots();
+                    showToast(`🎲 ${slotsApplied}개 슬롯에 자동번호가 적용되었습니다!`);
+                } else {
+                    showToast('⚠️ 비어있는 슬롯이 없습니다.');
+                }
             }
 
-            function clearBasket() {
-                if (confirm('장바구니를 비우시겠습니까?')) {
+            // --- Reset all slots ---
+            function omrResetAll() {
+                if (confirm('모든 슬롯을 초기화하시겠습니까?')) {
                     lottoBasket = [];
                     localStorage.setItem('lottoBasket', '[]');
+                    omrActiveSlot = 0;
+                    omrGridSelected = [];
                     updateBasketBadge();
-                    renderBasketOMR();
-                    showToast('🗑️ 장바구니가 비워졌습니다.');
+                    renderOmrGrid();
+                    renderOmrSlots();
+                    showToast('🗑️ 모든 슬롯이 초기화되었습니다.');
                 }
             }
 
+            // --- Edit a specific slot (load its numbers to grid) ---
+            function omrEditSlot(idx) {
+                omrActiveSlot = idx;
+                omrGridSelected = lottoBasket[idx] ? [...lottoBasket[idx]] : [];
+                renderOmrGrid();
+                renderOmrSlots();
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                showToast(`📝 ${labels[idx]}슬롯 수정 모드 — 번호를 변경 후 '나의번호등록'을 눌러주세요.`);
+            }
+
+            // --- Delete a specific slot ---
+            function omrDeleteSlot(idx) {
+                lottoBasket[idx] = [];
+                localStorage.setItem('lottoBasket', JSON.stringify(lottoBasket));
+                updateBasketBadge();
+                renderOmrSlots();
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                showToast(`🗑️ ${labels[idx]}슬롯이 삭제되었습니다.`);
+            }
+
+            // --- Copy slot numbers to clipboard ---
+            function omrCopySlot(idx) {
+                const nums = lottoBasket[idx];
+                if (!nums || nums.length === 0) {
+                    showToast('⚠️ 복사할 번호가 없습니다.');
+                    return;
+                }
+                const text = nums.join(', ');
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(`📋 번호가 복사되었습니다: ${text}`);
+                }).catch(() => {
+                    showToast(`📋 번호: ${text}`);
+                });
+            }
+
+            // --- Select active slot ---
+            function omrSelectSlot(idx) {
+                omrActiveSlot = idx;
+                omrGridSelected = [];
+                renderOmrGrid();
+                renderOmrSlots();
+            }
+
+            // --- Render right panel slot table ---
+            function renderOmrSlots() {
+                const table = document.getElementById('omrSlotTable');
+                if (!table) return;
+                table.innerHTML = '';
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+
+                for (let i = 0; i < 5; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'omr-slot-row' + (i === omrActiveSlot ? ' active' : '');
+                    row.onclick = (e) => { if (e.target === row || e.target.classList.contains('omr-slot-label')) omrSelectSlot(i); };
+
+                    const nums = lottoBasket[i] || [];
+                    const hasNums = nums.length === 6;
+
+                    // Label
+                    const label = document.createElement('div');
+                    label.className = 'omr-slot-label';
+                    label.innerText = hasNums ? `${labels[i]}지정` : `${labels[i]}미지정`;
+                    label.style.color = hasNums ? '#2563eb' : '#9ca3af';
+                    label.style.cursor = 'pointer';
+                    row.appendChild(label);
+
+                    // Balls
+                    const ballsDiv = document.createElement('div');
+                    ballsDiv.className = 'omr-slot-balls';
+                    for (let j = 0; j < 6; j++) {
+                        const ball = document.createElement('div');
+                        if (j < nums.length) {
+                            ball.className = 'omr-slot-ball filled ' + getBallClass(nums[j]);
+                            ball.innerText = nums[j];
+                        } else {
+                            ball.className = 'omr-slot-ball';
+                        }
+                        ballsDiv.appendChild(ball);
+                    }
+                    row.appendChild(ballsDiv);
+
+                    // Actions
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'omr-slot-actions';
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'omr-slot-action-btn';
+                    editBtn.innerText = '수정';
+                    editBtn.onclick = (e) => { e.stopPropagation(); omrEditSlot(i); };
+                    actionsDiv.appendChild(editBtn);
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'omr-slot-action-btn';
+                    delBtn.innerText = '삭제';
+                    delBtn.onclick = (e) => { e.stopPropagation(); omrDeleteSlot(i); };
+                    actionsDiv.appendChild(delBtn);
+
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'omr-slot-action-btn';
+                    copyBtn.innerText = '복사';
+                    copyBtn.onclick = (e) => { e.stopPropagation(); omrCopySlot(i); };
+                    actionsDiv.appendChild(copyBtn);
+
+                    row.appendChild(actionsDiv);
+                    table.appendChild(row);
+                }
+            }
+
+            // --- Method tab switching ---
+            function setOmrMethod(method) {
+                omrCurrentMethod = method;
+                ['mix', 'auto', 'prev', 'saved'].forEach(m => {
+                    const el = document.getElementById('omrMethod' + m.charAt(0).toUpperCase() + m.slice(1));
+                    if (el) el.classList.toggle('active', m === method);
+                });
+
+                if (method === 'auto') {
+                    omrAutoSelect();
+                } else if (method === 'prev') {
+                    // Load previous round numbers from history
+                    if (typeof LOTTO_HISTORY !== 'undefined') {
+                        const rounds = Object.keys(LOTTO_HISTORY).map(Number).sort((a,b) => b - a);
+                        if (rounds.length > 0) {
+                            const latest = LOTTO_HISTORY[rounds[0]];
+                            if (latest && latest.length >= 6) {
+                                omrGridSelected = latest.slice(0, 6).map(Number).sort((a,b) => a - b);
+                                renderOmrGrid();
+                                showToast(`📋 직전 ${rounds[0]}회차 당첨번호가 로드되었습니다.`);
+                            }
+                        }
+                    } else {
+                        showToast('⚠️ 당첨번호 데이터가 아직 로드되지 않았습니다.');
+                    }
+                } else if (method === 'saved') {
+                    // Load from localStorage saved numbers
+                    const saved = JSON.parse(localStorage.getItem('myLottoNumbers') || '[]');
+                    if (saved.length > 0) {
+                        omrGridSelected = saved.slice(0, 6).sort((a,b) => a - b);
+                        renderOmrGrid();
+                        showToast('📋 저장된 나의 번호가 로드되었습니다.');
+                    } else {
+                        showToast('💡 저장된 번호가 없습니다. 번호를 선택 후 등록해주세요.');
+                    }
+                } else {
+                    // mix: manual selection mode, just reset
+                    omrGridSelected = [];
+                    renderOmrGrid();
+                }
+            }
+
+            // --- Sidebar AI action (open AI modal alongside OMR) ---
+            function omrSidebarAction(type) {
+                omrReturnMode = true; // Flag to capture result numbers
+                
+                // If no store is selected (direct basket access), use a default national context
+                if (!currentShopData && (type === 'analysis' || type === 'navi')) {
+                    // Extract top 100 rounds from allData (sorted by win count)
+                    const topRounds = [];
+                    allData.slice(0, 100).forEach(d => {
+                        if (d.rounds) {
+                            d.rounds.forEach(r => topRounds.push({ r: r.r, m: r.m }));
+                        } else if (d.r) {
+                            topRounds.push({ r: d.r, m: d.m });
+                        }
+                    });
+                    currentShopData = {
+                        name: "전국 통합 명당 데이터",
+                        addr: "대한민국 전체",
+                        totalWins: 1350, // Illustrative total
+                        rounds: topRounds.slice(0, 30) // Use top 30 samples for analysis
+                    };
+                }
+
+                // Keep basket modal OPEN in background, raise AI modal on top
+                const adModal = document.getElementById('adModal');
+                adModal.style.zIndex = '10010'; // Higher than basket (10001)
+                
+                if (type === 'navi') {
+                    toggleNaviMode(true);
+                } else if (type === 'analysis') {
+                    adModal.style.display = 'flex';
+                    history.pushState({ modalOpen: true }, null, '');
+                    selectAnalysisMode();
+                } else if (type === 'dream') {
+                    adModal.style.display = 'flex';
+                    history.pushState({ modalOpen: true }, null, '');
+                    selectDreamMode();
+                } else if (type === 'horoscope') {
+                    adModal.style.display = 'flex';
+                    history.pushState({ modalOpen: true }, null, '');
+                    selectHoroscopeMode();
+                }
+            }
+
+            // --- Open / Close Basket ---
             function openLottoBasket() {
                 closeNav();
-                isManualMode = false; // Reset mode when opening
-                selectedManualIndex = 0; 
-                renderBasketOMR();
+                omrActiveSlot = lottoBasket.findIndex((s, i) => !s || s.length === 0);
+                if (omrActiveSlot < 0) omrActiveSlot = 0;
+                omrGridSelected = [];
+                renderOmrGrid();
+                renderOmrSlots();
                 document.getElementById('basketModal').style.display = 'flex';
-                history.pushState({ basketOpen: true }, null, "");
+                history.pushState({ basketOpen: true }, null, '');
             }
 
             function closeBasketModal() {
@@ -7007,79 +7684,13 @@
                 document.getElementById('basketModal').style.display = 'none';
             }
 
+            // Legacy compatibility
+            function clearBasket() {
+                omrResetAll();
+            }
             function renderBasketOMR() {
-                const container = document.getElementById('basketOMRContainer');
-                const btnMarking = document.getElementById('btnFinalMarking');
-                const msg = document.getElementById('basketNotice');
-                
-                if (lottoBasket.length === 0) {
-                    container.innerHTML = '<div style="padding: 40px; color: #999;">번호를 수집해 보세요! (0/5)</div>';
-                    btnMarking.style.display = 'none';
-                    msg.style.display = 'block';
-                    return;
-                }
-
-                container.innerHTML = '';
-                const labels = ['A', 'B', 'C', 'D', 'E'];
-                
-                // Logic to render 5 columns but only filled ones have marks
-                for (let i = 0; i < 5; i++) {
-                    const isSelected = (i === selectedManualIndex);
-                    const col = document.createElement('div');
-                    col.className = 'omr-column';
-                    col.style.cursor = 'pointer';
-                    col.onclick = () => selectSlot(i);
-                    
-                    if (isSelected) {
-                        if (isManualMode) {
-                            col.style.border = '3px solid #d32f2f'; // Editing
-                            col.style.background = '#fff5f5';
-                        } else {
-                            col.style.border = '3px solid #2196F3'; // Selected for potential edit
-                            col.style.background = '#e3f2fd';
-                        }
-                    }
-                    
-                    const header = document.createElement('div');
-                    header.className = 'omr-header';
-                    header.innerText = `${labels[i]} 1,000원`;
-                    if (isSelected && isManualMode) header.innerText += ' [수동 편집]';
-                    else if (isSelected) header.innerText += ' [선택됨]';
-                    col.appendChild(header);
-
-                    const grid = document.createElement('div');
-                    grid.className = 'omr-number-grid';
-                    
-                    const currentNums = lottoBasket[i] || [];
-                    
-                    for (let n = 1; n <= 45; n++) {
-                        const mark = document.createElement('div');
-                        const isMarked = currentNums.includes(n);
-                        mark.className = 'omr-mark' + (isMarked ? ' marked' : '');
-                        mark.innerText = n;
-                        
-                        // [NEW] Interactive click for Selected Slot in manual mode
-                        if (isSelected && isManualMode) {
-                            mark.style.cursor = 'pointer';
-                            mark.onclick = (e) => {
-                                e.stopPropagation();
-                                toggleManualMark(i, n);
-                            };
-                        }
-                        
-                        grid.appendChild(mark);
-                    }
-                    col.appendChild(grid);
-                    container.appendChild(col);
-                }
-
-                if (lottoBasket.length === 5) {
-                    btnMarking.style.display = 'inline-block';
-                    msg.style.display = 'none';
-                } else {
-                    btnMarking.style.display = 'none';
-                    msg.style.display = 'block';
-                }
+                renderOmrGrid();
+                renderOmrSlots();
             }
 
             // [v1.3] Real-time Ticker Countdown Logic
@@ -7249,14 +7860,15 @@
                 } else {
                     // --- Standard Analysis Mode (Auto + Manual) ---
                     // Generate two sets with specific modes
-                    const resultAuto = generateLuckyNumbers(currentShopData.rounds, 'auto');
-                    const resultManual = generateLuckyNumbers(currentShopData.rounds, 'manual');
+                    const rounds = (currentShopData && currentShopData.rounds) ? currentShopData.rounds : [];
+                    const resultAuto = generateLuckyNumbers(rounds, 'auto');
+                    const resultManual = generateLuckyNumbers(rounds, 'manual');
 
                     // Update Info Text (Shared stats)
                     const container = document.getElementById('resultInfoText');
                     if (container) {
-                        const winCount = currentShopData.totalWins || resultAuto.historyCount;
-                        const latestR = resultAuto.relatedRounds && resultAuto.relatedRounds.length > 0 ? resultAuto.relatedRounds[0] : '';
+                        const winCount = (currentShopData && currentShopData.totalWins) ? currentShopData.totalWins : resultAuto.historyCount;
+                        const latestR = resultAuto.relatedRounds && resultAuto.relatedRounds.length > 0 ? resultAuto.relatedRounds[0] : '최신';
 
                         container.innerHTML =
                             `이 명당은 과거 <strong id="paramHCount" style="color:#fae100;">${winCount}</strong>번의
