@@ -7318,21 +7318,51 @@
                     return;
                 }
                 
-                // Normal (legacy) basket add
-                if (lottoBasket.length >= 5) {
-                    showToast('⚠️ 장바구니가 가득 찼습니다! (최대 5개)');
-                    return;
+                // Ensure basket array is properly sized for 5 slots
+                while (lottoBasket.length < 5) {
+                    lottoBasket.push([]);
                 }
-                const isDup = lottoBasket.some(b => JSON.stringify(b) === JSON.stringify(sortedNums));
+                
+                // Check if duplicate anywhere
+                const isDup = lottoBasket.some(b => b && b.length === 6 && JSON.stringify([...b].sort((x,y)=>x-y)) === JSON.stringify(sortedNums));
                 if (isDup) {
                     showToast('💡 이미 장바구니에 있는 번호입니다.');
                     return;
                 }
-                lottoBasket.push(sortedNums);
+
+                // Find first empty slot (A~E)
+                const emptyIdx = lottoBasket.findIndex(b => !b || b.length === 0);
+                
+                if (emptyIdx === -1) {
+                    showToast('⚠️ 장바구니가 가득 찼습니다! (최대 5개)');
+                    return;
+                }
+                
+                // Add to the empty slot
+                lottoBasket[emptyIdx] = sortedNums;
                 localStorage.setItem('lottoBasket', JSON.stringify(lottoBasket));
+                
+                // Set active slot to next empty slot if exists
+                const nextEmpty = lottoBasket.findIndex((s, i) => i > emptyIdx && (!s || s.length === 0));
+                if (nextEmpty > -1) {
+                    omrActiveSlot = nextEmpty;
+                } else if (emptyIdx < 4) {
+                    omrActiveSlot = emptyIdx + 1; // Fallback to next one
+                }
+                
                 updateBasketBadge();
-                showToast(`🛒 OMR 장바구니에 추가되었습니다! (${lottoBasket.filter(s=>s&&s.length===6).length}/5)<br><a href="javascript:void(0)" onclick="openLottoBasket()" style="color:#fae100; font-weight:bold; text-decoration:underline; font-size:12px; margin-top:5px; display:inline-block;">장바구니 바로가기 &gt;</a>`);
-                if (lottoBasket.filter(s=>s&&s.length===6).length === 5) {
+                
+                // Important: Try to render OMR slots if right panel is active
+                if (typeof renderOmrSlots === 'function') {
+                    renderOmrSlots();
+                }
+                
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                const filledCount = lottoBasket.filter(s=>s&&s.length===6).length;
+                
+                showToast(`🛒 OMR 장바구니(${labels[emptyIdx]}지정)에 추가되었습니다! (${filledCount}/5)<br><a href="javascript:void(0)" onclick="openLottoBasket()" style="color:#fae100; font-weight:bold; text-decoration:underline; font-size:12px; margin-top:5px; display:inline-block;">장바구니 바로가기 &gt;</a>`);
+                
+                if (filledCount === 5) {
                     setTimeout(() => {
                         if (confirm('🎉 5개의 조합이 완성되었습니다!\n지금 바로 OMR 마킹을 확인하시겠습니까?')) {
                             openLottoBasket();
