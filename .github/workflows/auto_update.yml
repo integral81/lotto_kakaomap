@@ -2,8 +2,12 @@ name: Weekly Lotto Data Update
 
 on:
   schedule:
-    # 매주 토요일 21:10 KST (UTC 12:10) 실행
+    # 매주 토요일 21:10 KST (UTC 12:10) 기본 실행
     - cron: '10 12 * * 6'
+    # 매주 일요일 09:00 KST (UTC 00:00) 토요일 실패 대비 재시도
+    - cron: '0 0 * * 0'
+    # 매주 월요일 09:00 KST (UTC 00:00) 최후의 보루 재시도
+    - cron: '0 0 * * 1'
   workflow_dispatch: # 수동 트리거 허용
 
 # 동시 실행 방지
