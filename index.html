@@ -5271,6 +5271,8 @@
                     // Force refresh the recent rounds list now that history is loaded
                     if (window.forceUpdateRecentRounds) window.forceUpdateRecentRounds();
 
+                    if (window.updateDynamicHeader) window.updateDynamicHeader();
+
                 } catch (err) {
                     console.warn('[Data] History fetch failed:', err.message);
                 }
@@ -7804,6 +7806,43 @@
                 renderOmrGrid();
                 renderOmrSlots();
             }
+
+            function getBallColorClass(num) {
+                if (num <= 10) return 'ball-yellow';
+                if (num <= 20) return 'ball-blue';
+                if (num <= 30) return 'ball-red';
+                if (num <= 40) return 'ball-gray';
+                return 'ball-green';
+            }
+
+            window.updateDynamicHeader = function() {
+                if (!window.lottoHistory) return;
+                const rounds = Object.keys(window.lottoHistory).map(Number);
+                if (rounds.length === 0) return;
+                const latestRound = Math.max(...rounds);
+                const nextRound = latestRound + 1;
+                
+                const drawEl = document.getElementById('tickerDrawText');
+                if (drawEl) drawEl.innerText = `제 ${nextRound} 회`;
+                
+                const labelEl = document.getElementById('tickerLastRoundLabel');
+                if (labelEl) labelEl.innerText = `${latestRound}회: `;
+                
+                const resultBox = document.getElementById('tickerLastResult');
+                if (resultBox) {
+                    const nums = window.lottoHistory[String(latestRound)];
+                    if (nums && nums.length >= 6) {
+                        let html = '';
+                        for(let i=0; i<6; i++) {
+                            html += `<span class="lotto-ball ${getBallColorClass(nums[i])}">${nums[i]}</span>\n`;
+                        }
+                        if (nums.length >= 7 && nums[6] > 0) {
+                            html += `<span class="lotto-ball ${getBallColorClass(nums[6])}">${nums[6]}</span>\n`;
+                        }
+                        resultBox.innerHTML = html;
+                    }
+                }
+            };
 
             // [v1.3] Real-time Ticker Countdown Logic
             function updateTicker() {
