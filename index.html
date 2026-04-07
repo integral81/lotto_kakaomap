@@ -3803,14 +3803,14 @@
     <!-- [v1.3] Live Ticker Bar -->
     <div class="lotto-ticker">
         <div class="ticker-section">
-            <span class="ticker-draw">제 1218 회</span>
-            <span class="ticker-timer" id="tickerCountdown">4일 05:14:00 남음</span>
+            <span class="ticker-draw" id="tickerDrawText">제 1219 회</span>
+            <span class="ticker-timer" id="tickerCountdown">4일 02:29:40 남음</span>
         </div>
         <div class="ticker-section ticker-prize">
-            <span>1등 예상 총 당첨금: <strong>44억 9,220만</strong></span>
+            <span>1등 예상 총 당첨금: <strong id="tickerPrizeText">누적 진행중</strong></span>
         </div>
         <div class="ticker-section" style="font-size: 11px; opacity: 0.8;">
-            <span>1217회: </span>
+            <span id="tickerLastRoundLabel">1218회: </span>
             <div id="tickerLastResult" style="display: inline-flex; scale: 0.7; margin-left: -10px;">
                 <span class="lotto-ball ball-yellow">8</span>
                 <span class="lotto-ball ball-yellow">10</span>
@@ -3818,7 +3818,7 @@
                 <span class="lotto-ball ball-blue">20</span>
                 <span class="lotto-ball ball-red">29</span>
                 <span class="lotto-ball ball-gray">31</span>
-                <span class="lotto-ball ball-green" style="margin-left:5px;">41</span>
+                <span class="lotto-ball ball-green">41</span>
             </div>
         </div>
     </div>
@@ -7821,6 +7821,8 @@
                 if (rounds.length === 0) return;
                 const latestRound = Math.max(...rounds);
                 const nextRound = latestRound + 1;
+                
+                console.log(`[Ticker] Updating UI for Next: ${nextRound}, Last: ${latestRound}`);
                 
                 const drawEl = document.getElementById('tickerDrawText');
                 if (drawEl) drawEl.innerText = `제 ${nextRound} 회`;
